@@ -1,0 +1,275 @@
+[
+    {
+        "region": "Toshkent shahri",
+        "districts": [
+            "Bektemir",
+            "Chilonzor",
+            "Mirobod",
+            "Mirzo Ulug'bek",
+            "Olmazor",
+            "Sergeli",
+            "Shayxontohur",
+            "Uchtepa",
+            "Yakkasaroy",
+            "Yashnobod",
+            "Yunusobod",
+            "Yangihayot"
+        ]
+    },
+    {
+        "region": "Toshkent viloyati",
+        "districts": [
+            "Bekobod",
+            "Bo'ka",
+            "Bo'stonliq",
+            "Chinoz",
+            "Ohangaron",
+            "Oqqo'rg'on",
+            "Parkent",
+            "Piskent",
+            "Quyichirchiq",
+            "O'rtachirchiq",
+            "Yuqorichirchiq",
+            "Yangiyo'l",
+            "Zangiota",
+            "Qibray",
+            "Angren",
+            "Olmaliq",
+            "Bekobod shahri",
+            "Chirchiq",
+            "Nurafshon",
+            "Yangiyo'l shahri"
+        ]
+    },
+    {
+        "region": "Andijon viloyati",
+        "districts": [
+            "Andijon tumani",
+            "Asaka",
+            "Baliqchi",
+            "Bo'z",
+            "Buloqboshi",
+            "Izboskan",
+            "Jalaquduq",
+            "Xo'jaobod",
+            "Qo'rg'ontepa",
+            "Marhamat",
+            "Oltinko'l",
+            "Paxtaobod",
+            "Shahrixon",
+            "Ulug'nor",
+            "Andijon shahri",
+            "Xonobod"
+        ]
+    },
+    {
+        "region": "Buxoro viloyati",
+        "districts": [
+            "Olot",
+            "Buxoro tumani",
+            "G'ijduvon",
+            "Jondor",
+            "Kogon tumani",
+            "Qorako'l",
+            "Qorovulbozor",
+            "Peshku",
+            "Romitan",
+            "Shofirkon",
+            "Vobkent",
+            "Buxoro shahri",
+            "Kogon shahri"
+        ]
+    },
+    {
+        "region": "Farg'ona viloyati",
+        "districts": [
+            "Oltiariq",
+            "Bag'dod",
+            "Beshariq",
+            "Buvayda",
+            "Dang'ara",
+            "Farg'ona tumani",
+            "Furqat",
+            "Qo'shtepa",
+            "Quva",
+            "Rishton",
+            "So'x",
+            "Toshloq",
+            "Uchko'prik",
+            "O'zbekiston",
+            "Yozyovon",
+            "Farg'ona shahri",
+            "Marg'ilon",
+            "Qo'qon",
+            "Quvasoy"
+        ]
+    },
+    {
+        "region": "Jizzax viloyati",
+        "districts": [
+            "Arnasoy",
+            "Baxmal",
+            "Do'stlik",
+            "Forish",
+            "G'allaorol",
+            "Sharof Rashidov",
+            "Mirzacho'l",
+            "Paxtakor",
+            "Yangiobod",
+            "Zomin",
+            "Zafarobod",
+            "Zarbdor",
+            "Jizzax shahri"
+        ]
+    },
+    {
+        "region": "Xorazm viloyati",
+        "districts": [
+            "Bog'ot",
+            "Gurlan",
+            "Hazorasp",
+            "Xonqa",
+            "Xiva tumani",
+            "Qo'shko'pir",
+            "Shovot",
+            "Urganch tumani",
+            "Yangiariq",
+            "Yangibozor",
+            "Tuproqqal'a",
+            "Urganch shahri",
+            "Xiva shahri"
+        ]
+    },
+    {
+        "region": "Namangan viloyati",
+        "districts": [
+            "Chortoq",
+            "Chust",
+            "Kosonsoy",
+            "Mingbuloq",
+            "Namangan tumani",
+            "Norin",
+            "Pop",
+            "To'raqo'rg'on",
+            "Uchqo'rg'on",
+            "Uychi",
+            "Yangiqo'rg'on",
+            "Namangan shahri"
+        ]
+    },
+    {
+        "region": "Navoiy viloyati",
+        "districts": [
+            "Konimex",
+            "Karmana",
+            "Qiziltepa",
+            "Xatirchi",
+            "Navbahor",
+            "Nurota",
+            "Tomdi",
+            "Uchquduq",
+            "Navoiy shahri",
+            "Zarafshon"
+        ]
+    },
+    {
+        "region": "Qashqadaryo viloyati",
+        "districts": [
+            "Chiroqchi",
+            "Dehqonobod",
+            "G'uzor",
+            "Qamashi",
+            "Qarshi tumani",
+            "Kasbi",
+            "Kitob",
+            "Koson",
+            "Mirishkor",
+            "Muborak",
+            "Nishon",
+            "Shahrisabz tumani",
+            "Yakkabog'",
+            "Ko'kdala",
+            "Qarshi shahri",
+            "Shahrisabz shahri"
+        ]
+    },
+    {
+        "region": "Samarqand viloyati",
+        "districts": [
+            "Oqdaryo",
+            "Bulung'ur",
+            "Jomboy",
+            "Ishtixon",
+            "Kattaqo'rg'on tumani",
+            "Qo'shrabot",
+            "Narpay",
+            "Nurobod",
+            "Payariq",
+            "Pastdarg'om",
+            "Paxtachi",
+            "Samarqand tumani",
+            "Toyloq",
+            "Urgut",
+            "Samarqand shahri",
+            "Kattaqo'rg'on shahri"
+        ]
+    },
+    {
+        "region": "Sirdaryo viloyati",
+        "districts": [
+            "Oqoltin",
+            "Boyovut",
+            "Guliston tumani",
+            "Mirzaobod",
+            "Sayxunobod",
+            "Sardoba",
+            "Sirdaryo tumani",
+            "Xovos",
+            "Guliston shahri",
+            "Shirin",
+            "Yangiyer"
+        ]
+    },
+    {
+        "region": "Surxondaryo viloyati",
+        "districts": [
+            "Angor",
+            "Bandixon",
+            "Boysun",
+            "Denov",
+            "Jarqo'rg'on",
+            "Qiziriq",
+            "Qumqo'rg'on",
+            "Muzrabot",
+            "Oltinsoy",
+            "Sariosiyo",
+            "Sherobod",
+            "Sho'rchi",
+            "Termiz tumani",
+            "Uzun",
+            "Termiz shahri"
+        ]
+    },
+    {
+        "region": "Qoraqalpog'iston Respublikasi",
+        "districts": [
+            "Amudaryo",
+            "Beruniy",
+            "Chimboy",
+            "Ellikqal'a",
+            "Kegeyli",
+            "Mo'ynoq",
+            "Nukus tumani",
+            "Qonliko'l",
+            "Qorao'zak",
+            "Qo'ng'irot",
+            "Shumanay",
+            "Taxtako'pir",
+            "To'rtko'l",
+            "Xo'jayli",
+            "Bo'zatov",
+            "Taxiatosh",
+            "Nukus shahri"
+        ]
+    }
+]
