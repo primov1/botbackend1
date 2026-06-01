@@ -2,7 +2,6 @@ node_modules/
 dist/
 .env
 sessions.json
-package-lock.json
 *.log
 src/**/*.js
 src/**/*.js.map
