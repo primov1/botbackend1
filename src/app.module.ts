@@ -12,7 +12,7 @@ import { GiftPurchase } from './common/entities/gift-purchase.entity';
 
 @Module({
     imports: [
-        ConfigModule.forRoot({ isGlobal: true, envFilePath: '../.env' }),
+        ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRootAsync({
             inject: [ConfigService],
             useFactory: (config: ConfigService) => ({
@@ -38,3 +38,4 @@ import { GiftPurchase } from './common/entities/gift-purchase.entity';
     ],
 })
 export class AppModule {}
+
