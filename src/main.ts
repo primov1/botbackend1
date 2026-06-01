@@ -2,7 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-    await NestFactory.createApplicationContext(AppModule);
+    const app = await NestFactory.create(AppModule);
+    const port = process.env.PORT || 3000;
+    await app.listen(port);
+    console.log(`Server ${port} portda ishlamoqda`);
     console.log('Telegram bot ishga tushdi (polling).');
 }
 bootstrap();
