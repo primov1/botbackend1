@@ -15,17 +15,30 @@ import { GiftPurchase } from './common/entities/gift-purchase.entity';
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRootAsync({
             inject: [ConfigService],
-            useFactory: (config: ConfigService) => ({
-                type: 'postgres',
-                host: config.get<string>('DB_HOST', 'localhost'),
-                port: config.get<number>('DB_PORT', 5432),
-                username: config.get<string>('DB_USERNAME', 'postgres'),
-                password: config.get<string>('DB_PASSWORD', ''),
-                database: config.get<string>('DB_NAME', 'bot_loyiha'),
-                entities: [User, Product, Gift, Purchase, GiftPurchase],
-                synchronize: config.get<string>('NODE_ENV') !== 'production',
-                logging: config.get<string>('NODE_ENV') === 'development',
-            }),
+            useFactory: (config: ConfigService) => {
+                const url = config.get<string>('DATABASE_URL');
+                const ssl =
+                    config.get<string>('DB_SSL') === 'true'
+                        ? { rejectUnauthorized: false }
+                        : false;
+                const base = {
+                    type: 'postgres' as const,
+                    entities: [User, Product, Gift, Purchase, GiftPurchase],
+                    synchronize: config.get<string>('NODE_ENV') !== 'production',
+                    logging: config.get<string>('NODE_ENV') === 'development',
+                    ssl,
+                };
+                return url
+                    ? { ...base, url }
+                    : {
+                          ...base,
+                          host: config.get<string>('DB_HOST', 'localhost'),
+                          port: config.get<number>('DB_PORT', 5432),
+                          username: config.get<string>('DB_USERNAME', 'postgres'),
+                          password: config.get<string>('DB_PASSWORD', ''),
+                          database: config.get<string>('DB_NAME', 'bot_loyiha'),
+                      };
+            },
         }),
         TelegrafModule.forRootAsync({
             inject: [ConfigService],
