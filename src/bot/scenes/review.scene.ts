@@ -3,6 +3,8 @@ import { Ctx, Wizard, WizardStep } from 'nestjs-telegraf';
 import { Markup, Scenes } from 'telegraf';
 import { BotService } from '../bot.service';
 import { BotCatalogService } from '../bot-catalog.service';
+import { ImageUploadService } from '../../common/image-upload.service';
+import { escapeHtml, isValidButtonUrl } from '../../common/telegram.util';
 import {
     REVIEW_CANCEL, REVIEW_CONFIRM,
     cancelOnlyKeyboard, mainMenuKeyboard, reviewConfirmKeyboard,
@@ -24,6 +26,7 @@ export class ReviewScene {
     constructor(
         private readonly catalogService: BotCatalogService,
         private readonly botService: BotService,
+        private readonly imageUpload: ImageUploadService,
     ) {}
 
     @WizardStep(1)
@@ -46,35 +49,43 @@ export class ReviewScene {
 
         (ctx.wizard.state as ReviewState).productId = productId;
 
+        // Faqat yaroqli http/https havolalar tugma bo'ladi (BUTTON_URL_INVALID'ni oldini olamiz)
         const linkButtons: any[][] = [];
-        if (product.uzum_url) {
+        if (isValidButtonUrl(product.uzum_url)) {
             linkButtons.push([Markup.button.url("🍇 Uzum Marketga o'tish", product.uzum_url)]);
         }
-
-        if (product.telegramChannel) {
+        if (isValidButtonUrl(product.telegramChannel)) {
             linkButtons.push([
                 Markup.button.url('📢 Telegram kanalga obuna bo\'lish', product.telegramChannel),
             ]);
         }
-
-        if (product.instagram) {
+        if (isValidButtonUrl(product.instagram)) {
             linkButtons.push([
                 Markup.button.url('📸 Instagram sahifaga o\'tish', product.instagram),
             ]);
         }
 
-        await ctx.reply(
-            `📦 <b>${product.title}</b>\n\n` +
-            `🎁 Xarid uchun bonus: <b>+${product.bonus}</b>\n\n` +
-            (product.requireChannel && (product.telegramChannel || product.instagram)
-                ? `⚠️ <b>Diqqat!</b> Bonus olish uchun quyidagi kanal/sahifaga obuna bo'ling:\n`
-                : '') +
-            `Mahsulotni sotib olgach chek rasmini yuboring 👇`,
-            {
-                parse_mode: 'HTML',
-                ...Markup.inlineKeyboard(linkButtons),
-            },
-        );
+        try {
+            await ctx.reply(
+                `📦 <b>${escapeHtml(product.title)}</b>\n\n` +
+                `🎁 Xarid uchun bonus: <b>+${product.bonus}</b>\n\n` +
+                (product.requireChannel && (product.telegramChannel || product.instagram)
+                    ? `⚠️ <b>Diqqat!</b> Bonus olish uchun quyidagi kanal/sahifaga obuna bo'ling:\n`
+                    : '') +
+                `Mahsulotni sotib olgach chek rasmini yuboring 👇`,
+                {
+                    parse_mode: 'HTML',
+                    ...Markup.inlineKeyboard(linkButtons),
+                },
+            );
+        } catch (err) {
+            // HTML/tugma muammosi bo'lsa ham oqim uzilmasin — oddiy matn bilan yuboramiz
+            this.logger.warn(`Mahsulot xabarini HTML bilan yuborib bo'lmadi: ${(err as Error).message}`);
+            await ctx.reply(
+                `📦 ${product.title}\n\n🎁 Xarid uchun bonus: +${product.bonus}\n\n` +
+                `Mahsulotni sotib olgach chek rasmini yuboring 👇`,
+            );
+        }
 
         await ctx.reply(
             "Ushbu mahsulotni sotib olgan bo'lsangiz Tasdiqlash tugmasini bosing. 👇",
@@ -162,7 +173,10 @@ export class ReviewScene {
         let proofImage = '';
         try {
             const link = await ctx.telegram.getFileLink(fileId);
-            proofImage = typeof link === 'string' ? link : link.href;
+            const telegramUrl = typeof link === 'string' ? link : link.href;
+            // Token'siz barqaror saqlash uchun ImgBB'ga yuklaymiz; bo'lmasa Telegram havolasi
+            const hosted = await this.imageUpload.uploadFromUrl(telegramUrl);
+            proofImage = hosted ?? telegramUrl;
         } catch (err) {
             this.logger.warn(`Rasm havolasini olib bo'lmadi: ${(err as Error).message}`);
         }

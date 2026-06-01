@@ -22,6 +22,8 @@ const chunk = <T>(arr: T[], size: number): T[][] => {
     return out;
 };
 
+const CANCEL_COMMANDS = ['/bekor', '/cancel', '/start'];
+
 @Injectable()
 @Wizard(REGISTRATION_SCENE)
 export class RegistrationScene {
@@ -29,6 +31,17 @@ export class RegistrationScene {
         private readonly botService: BotService,
         private readonly regionsService: RegionsService,
     ) {}
+
+    /** Foydalanuvchi /bekor, /cancel yoki /start yozsa, ro'yxatdan o'tishni bekor qiladi. */
+    private async maybeAbort(ctx: WizardCtx, text: string): Promise<boolean> {
+        if (!CANCEL_COMMANDS.includes(text.toLowerCase())) return false;
+        await ctx.reply(
+            "Ro'yxatdan o'tish bekor qilindi. Qaytadan boshlash uchun /start bosing.",
+            Markup.removeKeyboard(),
+        );
+        await ctx.scene.leave();
+        return true;
+    }
 
     @WizardStep(1)
     async askPhone(@Ctx() ctx: WizardCtx) {
@@ -52,6 +65,10 @@ export class RegistrationScene {
             rawPhone = message.contact.phone_number;
         } else if (typeof message?.text === 'string') {
             rawPhone = message.text;
+        }
+
+        if (typeof message?.text === 'string' && await this.maybeAbort(ctx, message.text.trim())) {
+            return;
         }
 
         const phone = rawPhone ? BotService.normalizePhone(rawPhone) : '';
@@ -95,6 +112,8 @@ export class RegistrationScene {
         const message: any = (ctx as any).message;
         const text = typeof message?.text === 'string' ? message.text.trim() : '';
 
+        if (await this.maybeAbort(ctx, text)) return;
+
         if (!text) {
             await ctx.reply("Iltimos, ismingizni matn ko'rinishida kiriting:");
             return;
@@ -109,6 +128,8 @@ export class RegistrationScene {
     async handleLastName(@Ctx() ctx: WizardCtx) {
         const message: any = (ctx as any).message;
         const text = typeof message?.text === 'string' ? message.text.trim() : '';
+
+        if (await this.maybeAbort(ctx, text)) return;
 
         if (!text) {
             await ctx.reply("Iltimos, familiyangizni matn ko'rinishida kiriting:");
@@ -136,6 +157,8 @@ export class RegistrationScene {
         const message: any = (ctx as any).message;
         const text = typeof message?.text === 'string' ? message.text.trim() : '';
 
+        if (await this.maybeAbort(ctx, text)) return;
+
         if (!text || !this.regionsService.hasRegion(text)) {
             const regions = this.regionsService.getRegionNames();
             await ctx.reply(
@@ -162,6 +185,8 @@ export class RegistrationScene {
         const state = ctx.wizard.state as RegistrationState;
         const telegramId = ctx.from?.id;
 
+        if (await this.maybeAbort(ctx, text)) return;
+
         if (!state.region || !this.regionsService.hasDistrict(state.region, text)) {
             const districts = state.region ? this.regionsService.getDistricts(state.region) : [];
             await ctx.reply(
@@ -187,6 +212,8 @@ export class RegistrationScene {
             lastName: state.lastName,
             region: state.region,
             district: text,
+            username: ctx.from?.username ?? '',
+            language: ctx.from?.language_code ?? 'uz',
         };
 
         const user = await this.botService.createUser(payload);

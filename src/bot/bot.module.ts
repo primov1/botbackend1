@@ -6,6 +6,7 @@ import { BotCatalogService } from './bot-catalog.service';
 import { RegionsService } from './regions.service';
 import { RegistrationScene } from './scenes/registration.scene';
 import { ReviewScene } from './scenes/review.scene';
+import { ImageUploadService } from '../common/image-upload.service';
 import { User } from '../common/entities/user.entity';
 import { Product } from '../common/entities/product.entity';
 import { Gift } from '../common/entities/gift.entity';
@@ -23,6 +24,7 @@ import { GiftPurchase } from '../common/entities/gift-purchase.entity';
         BotUpdate,
         RegistrationScene,
         ReviewScene,
+        ImageUploadService,
     ],
 })
 export class BotModule {}

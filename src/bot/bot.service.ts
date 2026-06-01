@@ -12,6 +12,8 @@ export interface CreateUserPayload {
     lastName: string;
     region: string;
     district: string;
+    username?: string;
+    language?: string;
 }
 
 export interface CreateReviewPurchasePayload {
@@ -19,12 +21,6 @@ export interface CreateReviewPurchasePayload {
     productId: number;
     bonus: number;
     proofImage: string;
-}
-
-export interface CreateGiftPurchasePayload {
-    userId: number;
-    giftId: number;
-    price: number;
 }
 
 @Injectable()
@@ -57,16 +53,34 @@ export class BotService {
         return this.userRepo.findOne({ where: { phone } });
     }
 
-    async deductBonus(telegramId: number, amount: number) {
-        const result = await this.dataSource
-            .createQueryBuilder()
-            .update(User)
-            .set({ bonus: () => `bonus - ${amount}` })
-            .where('telegramId = :telegramId AND bonus >= :amount', { telegramId, amount })
-            .returning('*')
-            .execute();
-        if (!result.affected) return null;
-        return result.raw[0] as User;
+    /**
+     * Sovg'a sotib olish: bonusni atomik yechish + sovg'a yozuvini yaratish —
+     * BITTA transaction. Bonus yetarsiz bo'lsa null qaytaradi (hech narsa o'zgarmaydi).
+     * Agar yozuv yaratishda xato bo'lsa, bonus ham qaytariladi (rollback).
+     */
+    async purchaseGift(telegramId: number, gift: { id: number; price: number }) {
+        return this.dataSource.transaction(async (em) => {
+            const result = await em
+                .createQueryBuilder()
+                .update(User)
+                .set({ bonus: () => `bonus - ${gift.price}` })
+                .where('telegramId = :telegramId AND bonus >= :price', {
+                    telegramId,
+                    price: gift.price,
+                })
+                .returning('*')
+                .execute();
+
+            if (!result.affected) return null;
+            const user = result.raw[0] as User;
+
+            await em.insert(GiftPurchase, {
+                userId: user.id,
+                giftId: gift.id,
+                price: gift.price,
+            });
+            return user;
+        });
     }
 
     findPendingPurchase(userId: number, productId: number) {
@@ -83,15 +97,6 @@ export class BotService {
             proofImage: payload.proofImage,
         });
         return this.purchaseRepo.save(purchase);
-    }
-
-    createGiftPurchase(payload: CreateGiftPurchasePayload) {
-        const gp = this.giftPurchaseRepo.create({
-            userId: payload.userId,
-            giftId: payload.giftId,
-            price: payload.price,
-        });
-        return this.giftPurchaseRepo.save(gp);
     }
 
     async findUserOrdersPage(userId: number, page: number, size = 5) {

@@ -2,13 +2,17 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TelegrafModule } from 'nestjs-telegraf';
-import LocalSession from 'telegraf-session-local';
+import { session } from 'telegraf';
+import { DataSource } from 'typeorm';
 import { BotModule } from './bot/bot.module';
 import { User } from './common/entities/user.entity';
 import { Product } from './common/entities/product.entity';
 import { Gift } from './common/entities/gift.entity';
 import { Purchase } from './common/entities/purchase.entity';
 import { GiftPurchase } from './common/entities/gift-purchase.entity';
+import { PgSessionStore } from './common/pg-session.store';
+import { SchemaBootstrapService } from './common/schema-bootstrap.service';
+import { HealthController } from './health/health.controller';
 
 @Module({
     imports: [
@@ -41,13 +45,22 @@ import { GiftPurchase } from './common/entities/gift-purchase.entity';
             },
         }),
         TelegrafModule.forRootAsync({
-            inject: [ConfigService],
-            useFactory: (config: ConfigService) => ({
+            inject: [ConfigService, DataSource],
+            useFactory: (config: ConfigService, dataSource: DataSource) => ({
                 token: config.get<string>('BOT_TOKEN') ?? '',
-                middlewares: [new LocalSession({ database: 'sessions.json' }).middleware()],
+                // Fayl (sessions.json) o'rniga Postgres-asosli sessiya — Railway
+                // redeploy/restart'da scene/wizard holati yo'qolmaydi.
+                middlewares: [
+                    session({
+                        store: new PgSessionStore(dataSource),
+                        defaultSession: () => ({}),
+                    }),
+                ],
             }),
         }),
         BotModule,
     ],
+    controllers: [HealthController],
+    providers: [SchemaBootstrapService],
 })
 export class AppModule {}

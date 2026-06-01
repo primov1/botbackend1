@@ -378,62 +378,40 @@ export class BotUpdate {
 
     @Action(/^gift:(\d+)$/)
     async onGiftBuy(@TelegrafCtx() ctx: BotCtx) {
+        // Tugmani darhol "javob berilgan" qilamiz (loading spinner osilmasin)
+        await ctx.answerCbQuery().catch(() => undefined);
+
         const giftId = Number(ctx.match?.[1]);
-        if (!giftId) {
-            await ctx.answerCbQuery().catch(() => undefined);
-            return;
-        }
+        if (!giftId) return;
 
         const telegramId = ctx.from?.id;
-        if (!telegramId) {
-            await ctx.answerCbQuery().catch(() => undefined);
-            return;
-        }
+        if (!telegramId) return;
 
         const user = await this.botService.findByTelegramId(telegramId);
         if (!user) {
-            await ctx
-                .answerCbQuery("Avval ro'yxatdan o'ting.")
-                .catch(() => undefined);
+            await ctx.reply("Iltimos, avval ro'yxatdan o'ting. /start", mainMenuKeyboard);
             return;
         }
 
         const gift = await this.catalogService.findGiftById(giftId);
         if (!gift) {
-            await ctx.answerCbQuery("Sovg'a topilmadi.").catch(() => undefined);
+            await ctx.reply("Sovg'a topilmadi.", mainMenuKeyboard);
             return;
         }
 
-        if (user.bonus < gift.price) {
-            await ctx
-                .answerCbQuery(
-                    `Bonusingiz yetarli emas (${user.bonus}/${gift.price}).`,
-                    { show_alert: true },
-                )
-                .catch(() => undefined);
-            return;
-        }
-
-        const updated = await this.botService.deductBonus(
-            telegramId,
-            gift.price,
-        );
-        if (!updated) {
-            await ctx
-                .answerCbQuery('Bonusingiz yetarli emas.', { show_alert: true })
-                .catch(() => undefined);
-            return;
-        }
-
-        await this.botService.createGiftPurchase({
-            userId: updated.id,
-            giftId: gift.id,
+        // Atomik: bonusni yechish + sovg'a yozuvi bitta transaction'da
+        const updated = await this.botService.purchaseGift(telegramId, {
+            id: gift.id,
             price: gift.price,
         });
+        if (!updated) {
+            await ctx.reply(
+                `❌ Bonusingiz yetarli emas (${user.bonus}/${gift.price}).`,
+                mainMenuKeyboard,
+            );
+            return;
+        }
 
-        await ctx
-            .answerCbQuery("Sovg'a sotib olindi ✅")
-            .catch(() => undefined);
         await ctx.reply(
             `✅ Tabriklaymiz! Siz "${gift.title}" sovg'asini almashtirib oldingiz.\n` +
                 `💸 -${gift.price} bonus\n` +

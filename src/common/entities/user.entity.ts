@@ -24,9 +24,11 @@ export class User {
     })
     telegramId: number;
 
+    // null'ga ruxsat: unique constraint null'larni alohida deb hisoblaydi,
+    // shuning uchun telefonsiz yozuvlar to'qnashmaydi (default '' muammosi yo'q).
     @Index()
-    @Column({ type: 'varchar', default: '', unique: true })
-    phone: string;
+    @Column({ type: 'varchar', nullable: true, unique: true })
+    phone: string | null;
 
     @Column({ type: 'varchar', default: '' })
     firstName: string;
