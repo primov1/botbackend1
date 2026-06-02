@@ -3,7 +3,11 @@ import { Action, Command, Ctx as TelegrafCtx, Hears, Start, Update } from 'nestj
 import { Markup, Scenes } from 'telegraf';
 import { BotService } from './bot.service';
 import { BotCatalogService } from './bot-catalog.service';
-import { MENU_GIFTS, MENU_REVIEW, mainMenuKeyboard } from './keyboards';
+import {
+    MENU_GIFTS_ALL, MENU_REVIEW_ALL,
+    languageKeyboard, mainMenuKeyboard,
+} from './keyboards';
+import { Lang, normalizeLang, t } from './i18n';
 import { REGISTRATION_SCENE } from './scenes/registration.scene';
 import { REVIEW_SCENE } from './scenes/review.scene';
 
@@ -25,21 +29,37 @@ export class BotUpdate {
         private readonly catalogService: BotCatalogService,
     ) {}
 
+    /** Joriy foydalanuvchi tilini oladi (default uz). */
+    private async langOf(telegramId?: number): Promise<Lang> {
+        if (!telegramId) return 'uz';
+        const user = await this.botService.findByTelegramId(telegramId);
+        return normalizeLang(user?.language);
+    }
+
     @Start()
     async onStart(@TelegrafCtx() ctx: BotCtx) {
+        // Har doim avval til tanlash ko'rsatiladi
+        await ctx.reply(t('uz', 'choose_language'), languageKeyboard);
+    }
+
+    @Action(/^setlang:(uz|ru|en)$/)
+    async onSetLang(@TelegrafCtx() ctx: BotCtx) {
+        await ctx.answerCbQuery().catch(() => undefined);
+        const lang = (ctx.match?.[1] ?? 'uz') as Lang;
         const telegramId = ctx.from?.id;
         if (!telegramId) return;
 
         const existing = await this.botService.findByTelegramId(telegramId);
         if (existing) {
+            await this.botService.updateLanguage(telegramId, lang);
             await ctx.reply(
-                `Xush kelibsiz, ${existing.firstName}! 👋\n💰 Bonus hisobingiz: ${existing.bonus}`,
-                mainMenuKeyboard,
+                t(lang, 'welcome_back', { name: existing.firstName, bonus: existing.bonus }),
+                mainMenuKeyboard(lang),
             );
             return;
         }
 
-        await ctx.scene.enter(REGISTRATION_SCENE);
+        await ctx.scene.enter(REGISTRATION_SCENE, { lang });
     }
 
     @Command('balance')
@@ -48,15 +68,13 @@ export class BotUpdate {
         if (!telegramId) return;
 
         const user = await this.botService.findByTelegramId(telegramId);
+        const lang = normalizeLang(user?.language);
         if (!user) {
-            await ctx.reply("Iltimos, avval ro'yxatdan o'ting. /start");
+            await ctx.reply(t(lang, 'register_first'));
             return;
         }
 
-        await ctx.reply(
-            `💰 Bonus hisobingiz: ${user.bonus} ball`,
-            mainMenuKeyboard,
-        );
+        await ctx.reply(t(lang, 'balance', { bonus: user.bonus }), mainMenuKeyboard(lang));
     }
 
     @Command('orders')
@@ -77,179 +95,136 @@ export class BotUpdate {
         if (!telegramId) return;
 
         const user = await this.botService.findByTelegramId(telegramId);
+        const lang = normalizeLang(user?.language);
         if (!user) {
-            await ctx.reply("Iltimos, avval ro'yxatdan o'ting. /start");
+            await ctx.reply(t(lang, 'register_first'));
             return;
         }
 
         const gifts = await this.botService.findUserGiftPurchases(user.id);
         if (gifts.length === 0) {
-            await ctx.reply(
-                "Sizda hali olingan sovg'alar yo'q.",
-                mainMenuKeyboard,
-            );
+            await ctx.reply(t(lang, 'no_gifts'), mainMenuKeyboard(lang));
             return;
         }
 
         const lines = gifts.map(
-            (g: any, i) =>
-                `${i + 1}. ${g.gift?.title ?? "[o'chirilgan sovg'a]"}`,
+            (g: any, i) => `${i + 1}. ${g.gift?.title ?? t(lang, 'deleted_gift')}`,
         );
         await ctx.reply(
-            `🎁 Olingan sovg'alaringiz (${gifts.length}):\n\n${lines.join('\n')}`,
-            mainMenuKeyboard,
+            t(lang, 'my_gifts_header', { count: gifts.length, list: lines.join('\n') }),
+            mainMenuKeyboard(lang),
         );
     }
 
-    @Hears(MENU_REVIEW)
+    @Hears(MENU_REVIEW_ALL)
     async onReviewMenu(@TelegrafCtx() ctx: BotCtx) {
         const telegramId = ctx.from?.id;
         if (!telegramId) return;
 
         const user = await this.botService.findByTelegramId(telegramId);
+        const lang = normalizeLang(user?.language);
         if (!user) {
-            await ctx.reply("Iltimos, avval ro'yxatdan o'ting. /start");
+            await ctx.reply(t(lang, 'register_first'));
             return;
         }
 
-        const { total } = await this.catalogService.findProductsPage(
-            0,
-            PAGE_SIZE,
-        );
+        const { total } = await this.catalogService.findProductsPage(0, PAGE_SIZE);
         if (total === 0) {
-            await ctx.reply(
-                'Hozircha mahsulotlar mavjud emas.',
-                mainMenuKeyboard,
-            );
+            await ctx.reply(t(lang, 'no_products'), mainMenuKeyboard(lang));
             return;
         }
 
-        await ctx.reply(
-            `📦 Mahsulotlar (${total}):\nXaridni tasdiqlab bonus yutib oling 👇`,
-            mainMenuKeyboard,
-        );
-
-        await this.sendProductPage(ctx, 0);
+        await ctx.reply(t(lang, 'products_header', { total }), mainMenuKeyboard(lang));
+        await this.sendProductPage(ctx, 0, lang);
     }
 
     @Action(/^prodpage:(\d+)$/)
     async onProductPage(@TelegrafCtx() ctx: BotCtx) {
         await ctx.answerCbQuery().catch(() => undefined);
+        const lang = await this.langOf(ctx.from?.id);
         const page = Number(ctx.match?.[1] ?? 0);
-        await this.sendProductPage(ctx, page);
+        await this.sendProductPage(ctx, page, lang);
     }
 
-    @Hears(MENU_GIFTS)
+    @Hears(MENU_GIFTS_ALL)
     async onGiftsMenu(@TelegrafCtx() ctx: BotCtx) {
         const telegramId = ctx.from?.id;
         if (!telegramId) return;
 
         const user = await this.botService.findByTelegramId(telegramId);
+        const lang = normalizeLang(user?.language);
         if (!user) {
-            await ctx.reply("Iltimos, avval ro'yxatdan o'ting. /start");
+            await ctx.reply(t(lang, 'register_first'));
             return;
         }
 
         const { total } = await this.catalogService.findGiftsPage(0, PAGE_SIZE);
         if (total === 0) {
-            await ctx.reply(
-                "Hozircha sovg'alar mavjud emas.",
-                mainMenuKeyboard,
-            );
+            await ctx.reply(t(lang, 'no_gifts_available'), mainMenuKeyboard(lang));
             return;
         }
 
         await ctx.reply(
-            `🎁 Sovg'alar (${total}):\n💰 Sizning bonusingiz: ${user.bonus}`,
-            mainMenuKeyboard,
+            t(lang, 'gifts_header', { total, bonus: user.bonus }),
+            mainMenuKeyboard(lang),
         );
-
-        await this.sendGiftPage(ctx, 0);
+        await this.sendGiftPage(ctx, 0, lang);
     }
 
     @Action(/^giftpage:(\d+)$/)
     async onGiftPage(@TelegrafCtx() ctx: BotCtx) {
         await ctx.answerCbQuery().catch(() => undefined);
+        const lang = await this.langOf(ctx.from?.id);
         const page = Number(ctx.match?.[1] ?? 0);
-        await this.sendGiftPage(ctx, page);
+        await this.sendGiftPage(ctx, page, lang);
     }
 
-    private async sendProductPage(ctx: BotCtx, page: number) {
+    private async sendProductPage(ctx: BotCtx, page: number, lang: Lang) {
         const session = this.getSession(ctx);
-        const {
-            items,
-            totalPages,
-            page: safePage,
-        } = await this.catalogService.findProductsPage(page, PAGE_SIZE);
+        const { items, totalPages, page: safePage } =
+            await this.catalogService.findProductsPage(page, PAGE_SIZE);
 
         await this.deleteTracked(ctx, session.productMsgIds);
 
         const msgIds: number[] = [];
         for (const product of items) {
             const inline = Markup.inlineKeyboard([
-                [
-                    Markup.button.callback(
-                        '📦 Ushbu mahsulotni tanlash',
-                        `review:${String(product.id)}`,
-                    ),
-                ],
+                [Markup.button.callback(t(lang, 'btn_select_product'), `review:${String(product.id)}`)],
             ]);
-            const id = await this.sendItem(
-                ctx,
-                product.image,
-                product.title,
-                inline,
-                String(product.id),
-            );
+            const id = await this.sendItem(ctx, product.image, product.title, inline, String(product.id));
             if (id) msgIds.push(id);
         }
 
         const navMsg = await ctx.reply(
-            `📄 Sahifa ${safePage + 1}/${totalPages}`,
-            this.buildNav('prodpage', safePage, totalPages),
+            t(lang, 'page', { page: safePage + 1, total: totalPages }),
+            this.buildNav('prodpage', safePage, totalPages, lang),
         );
         msgIds.push(navMsg.message_id);
-
         session.productMsgIds = msgIds;
     }
 
-    private async sendGiftPage(ctx: BotCtx, page: number) {
+    private async sendGiftPage(ctx: BotCtx, page: number, lang: Lang) {
         const session = this.getSession(ctx);
-        const {
-            items,
-            totalPages,
-            page: safePage,
-        } = await this.catalogService.findGiftsPage(page, PAGE_SIZE);
+        const { items, totalPages, page: safePage } =
+            await this.catalogService.findGiftsPage(page, PAGE_SIZE);
 
         await this.deleteTracked(ctx, session.giftMsgIds);
 
         const msgIds: number[] = [];
         for (const gift of items) {
-            const caption = `🎁 ${gift.title}\n💸 Narxi: ${gift.price} bonus`;
+            const caption = t(lang, 'gift_caption', { title: gift.title, price: gift.price });
             const inline = Markup.inlineKeyboard([
-                [
-                    Markup.button.callback(
-                        '🛒 Almashtirish',
-                        `gift:${String(gift.id)}`,
-                    ),
-                ],
+                [Markup.button.callback(t(lang, 'btn_exchange'), `gift:${String(gift.id)}`)],
             ]);
-            const id = await this.sendItem(
-                ctx,
-                gift.image,
-                caption,
-                inline,
-                String(gift.id),
-            );
+            const id = await this.sendItem(ctx, gift.image, caption, inline, String(gift.id));
             if (id) msgIds.push(id);
         }
 
         const navMsg = await ctx.reply(
-            `📄 Sahifa ${safePage + 1}/${totalPages}`,
-            this.buildNav('giftpage', safePage, totalPages),
+            t(lang, 'page', { page: safePage + 1, total: totalPages }),
+            this.buildNav('giftpage', safePage, totalPages, lang),
         );
         msgIds.push(navMsg.message_id);
-
         session.giftMsgIds = msgIds;
     }
 
@@ -258,39 +233,29 @@ export class BotUpdate {
         if (!telegramId) return;
 
         const user = await this.botService.findByTelegramId(telegramId);
+        const lang = normalizeLang(user?.language);
         if (!user) {
-            await ctx.reply("Iltimos, avval ro'yxatdan o'ting. /start");
+            await ctx.reply(t(lang, 'register_first'));
             return;
         }
 
-        const {
-            items,
-            total,
-            totalPages,
-            page: safePage,
-        } = await this.botService.findUserOrdersPage(
-            user.id,
-            page,
-            PAGE_SIZE,
-        );
+        const { items, total, totalPages, page: safePage } =
+            await this.botService.findUserOrdersPage(user.id, page, PAGE_SIZE);
 
         if (total === 0) {
-            await ctx.reply(
-                "Sizda hali tasdiqlangan xaridlar yo'q.",
-                mainMenuKeyboard,
-            );
+            await ctx.reply(t(lang, 'no_orders'), mainMenuKeyboard(lang));
             return;
         }
 
         const lines = items.map(
             (p: any, i) =>
-                `${safePage * PAGE_SIZE + i + 1}. ${p.product?.title ?? "[o'chirilgan mahsulot]"}`,
+                `${safePage * PAGE_SIZE + i + 1}. ${p.product?.title ?? t(lang, 'deleted_product')}`,
         );
         const text =
-            `🛒 Xaridlaringiz (${total}):\n\n` +
+            `${t(lang, 'orders_header', { total })}\n\n` +
             `${lines.join('\n')}\n\n` +
-            `📄 Sahifa ${safePage + 1}/${totalPages}`;
-        const nav = this.buildNav('orderpage', safePage, totalPages);
+            `${t(lang, 'page', { page: safePage + 1, total: totalPages })}`;
+        const nav = this.buildNav('orderpage', safePage, totalPages, lang);
 
         if (edit) {
             await ctx.editMessageText(text, nav).catch(() => undefined);
@@ -308,41 +273,30 @@ export class BotUpdate {
     ): Promise<number | undefined> {
         try {
             if (image) {
-                const msg = await ctx.replyWithPhoto(image, {
-                    caption,
-                    ...inline,
-                });
+                const msg = await ctx.replyWithPhoto(image, { caption, ...inline });
                 return msg.message_id;
             }
             const msg = await ctx.reply(caption, inline);
             return msg.message_id;
         } catch (err) {
-            this.logger.warn(
-                `Element yuborilmadi (${itemId}): ${(err as Error).message}`,
-            );
+            this.logger.warn(`Element yuborilmadi (${itemId}): ${(err as Error).message}`);
             try {
                 const msg = await ctx.reply(caption, inline);
                 return msg.message_id;
             } catch (fallbackErr) {
-                this.logger.error(
-                    `Fallback ham yuborilmadi (${itemId}): ${(fallbackErr as Error).message}`,
-                );
+                this.logger.error(`Fallback ham yuborilmadi (${itemId}): ${(fallbackErr as Error).message}`);
                 return undefined;
             }
         }
     }
 
-    private buildNav(prefix: string, page: number, totalPages: number) {
+    private buildNav(prefix: string, page: number, totalPages: number, lang: Lang) {
         const row: ReturnType<typeof Markup.button.callback>[] = [];
         if (page > 0) {
-            row.push(
-                Markup.button.callback('⬅️ Orqaga', `${prefix}:${page - 1}`),
-            );
+            row.push(Markup.button.callback(t(lang, 'btn_back'), `${prefix}:${page - 1}`));
         }
         if (page < totalPages - 1) {
-            row.push(
-                Markup.button.callback('Oldinga ➡️', `${prefix}:${page + 1}`),
-            );
+            row.push(Markup.button.callback(t(lang, 'btn_next'), `${prefix}:${page + 1}`));
         }
         return Markup.inlineKeyboard(row.length ? [row] : []);
     }
@@ -368,8 +322,9 @@ export class BotUpdate {
         if (!telegramId) return;
 
         const user = await this.botService.findByTelegramId(telegramId);
+        const lang = normalizeLang(user?.language);
         if (!user) {
-            await ctx.reply("Iltimos, avval ro'yxatdan o'ting. /start");
+            await ctx.reply(t(lang, 'register_first'));
             return;
         }
 
@@ -378,7 +333,6 @@ export class BotUpdate {
 
     @Action(/^gift:(\d+)$/)
     async onGiftBuy(@TelegrafCtx() ctx: BotCtx) {
-        // Tugmani darhol "javob berilgan" qilamiz (loading spinner osilmasin)
         await ctx.answerCbQuery().catch(() => undefined);
 
         const giftId = Number(ctx.match?.[1]);
@@ -388,35 +342,30 @@ export class BotUpdate {
         if (!telegramId) return;
 
         const user = await this.botService.findByTelegramId(telegramId);
+        const lang = normalizeLang(user?.language);
         if (!user) {
-            await ctx.reply("Iltimos, avval ro'yxatdan o'ting. /start", mainMenuKeyboard);
+            await ctx.reply(t(lang, 'register_first'), mainMenuKeyboard(lang));
             return;
         }
 
         const gift = await this.catalogService.findGiftById(giftId);
         if (!gift) {
-            await ctx.reply("Sovg'a topilmadi.", mainMenuKeyboard);
+            await ctx.reply(t(lang, 'gift_not_found'), mainMenuKeyboard(lang));
             return;
         }
 
-        // Atomik: bonusni yechish + sovg'a yozuvi bitta transaction'da
-        const updated = await this.botService.purchaseGift(telegramId, {
-            id: gift.id,
-            price: gift.price,
-        });
+        const updated = await this.botService.purchaseGift(telegramId, { id: gift.id, price: gift.price });
         if (!updated) {
             await ctx.reply(
-                `❌ Bonusingiz yetarli emas (${user.bonus}/${gift.price}).`,
-                mainMenuKeyboard,
+                t(lang, 'not_enough_bonus', { have: user.bonus, need: gift.price }),
+                mainMenuKeyboard(lang),
             );
             return;
         }
 
         await ctx.reply(
-            `✅ Tabriklaymiz! Siz "${gift.title}" sovg'asini almashtirib oldingiz.\n` +
-                `💸 -${gift.price} bonus\n` +
-                `💰 Qolgan bonus: ${updated.bonus}`,
-            mainMenuKeyboard,
+            t(lang, 'gift_success', { title: gift.title, price: gift.price, bonus: updated.bonus }),
+            mainMenuKeyboard(lang),
         );
     }
 }

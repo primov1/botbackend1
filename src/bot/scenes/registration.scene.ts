@@ -4,10 +4,12 @@ import { Markup, Scenes } from 'telegraf';
 import { BotService, CreateUserPayload } from '../bot.service';
 import { RegionsService } from '../regions.service';
 import { mainMenuKeyboard } from '../keyboards';
+import { Lang, normalizeLang, t } from '../i18n';
 
 export const REGISTRATION_SCENE = 'REGISTRATION_SCENE';
 
 interface RegistrationState {
+    lang?: Lang;
     phone?: string;
     firstName?: string;
     lastName?: string;
@@ -32,24 +34,27 @@ export class RegistrationScene {
         private readonly regionsService: RegionsService,
     ) {}
 
-    /** Foydalanuvchi /bekor, /cancel yoki /start yozsa, ro'yxatdan o'tishni bekor qiladi. */
+    private lang(ctx: WizardCtx): Lang {
+        return (ctx.wizard.state as RegistrationState).lang ?? 'uz';
+    }
+
+    /** /bekor, /cancel yoki /start yozsa, ro'yxatdan o'tishni bekor qiladi. */
     private async maybeAbort(ctx: WizardCtx, text: string): Promise<boolean> {
         if (!CANCEL_COMMANDS.includes(text.toLowerCase())) return false;
-        await ctx.reply(
-            "Ro'yxatdan o'tish bekor qilindi. Qaytadan boshlash uchun /start bosing.",
-            Markup.removeKeyboard(),
-        );
+        await ctx.reply(t(this.lang(ctx), 'register_canceled'), Markup.removeKeyboard());
         await ctx.scene.leave();
         return true;
     }
 
     @WizardStep(1)
     async askPhone(@Ctx() ctx: WizardCtx) {
+        // Til scene state'dan olinadi va wizard state'ga saqlanadi
+        const lang = normalizeLang((ctx.scene.state as RegistrationState)?.lang);
+        (ctx.wizard.state as RegistrationState).lang = lang;
+
         await ctx.reply(
-            "Assalomu alaykum! Ro'yxatdan o'tish uchun telefon raqamingizni yuboring 👇",
-            Markup.keyboard([
-                [Markup.button.contactRequest('📞 Telefon raqamni yuborish')],
-            ])
+            t(lang, 'ask_phone'),
+            Markup.keyboard([[Markup.button.contactRequest(t(lang, 'btn_send_phone'))]])
                 .oneTime()
                 .resize(),
         );
@@ -58,6 +63,7 @@ export class RegistrationScene {
 
     @WizardStep(2)
     async handlePhone(@Ctx() ctx: WizardCtx) {
+        const lang = this.lang(ctx);
         const message: any = (ctx as any).message;
         let rawPhone: string | undefined;
 
@@ -67,7 +73,7 @@ export class RegistrationScene {
             rawPhone = message.text;
         }
 
-        if (typeof message?.text === 'string' && await this.maybeAbort(ctx, message.text.trim())) {
+        if (typeof message?.text === 'string' && (await this.maybeAbort(ctx, message.text.trim()))) {
             return;
         }
 
@@ -75,13 +81,8 @@ export class RegistrationScene {
 
         if (!phone || !BotService.isValidUzbekPhone(phone)) {
             await ctx.reply(
-                "❌ Telefon raqam noto'g'ri!\n\n" +
-                "Raqam +998 bilan boshlanib, 12 ta raqamdan iborat bo'lishi kerak.\n" +
-                "Masalan: +998901234567\n\n" +
-                "Iltimos, pastdagi tugma orqali yuboring 👇",
-                Markup.keyboard([
-                    [Markup.button.contactRequest('📞 Telefon raqamni yuborish')],
-                ])
+                t(lang, 'invalid_phone'),
+                Markup.keyboard([[Markup.button.contactRequest(t(lang, 'btn_send_phone'))]])
                     .oneTime()
                     .resize(),
             );
@@ -94,45 +95,48 @@ export class RegistrationScene {
             if (telegramId && existing.telegramId !== telegramId) {
                 await this.botService.updateTelegramId(phone, telegramId);
             }
+            if (telegramId) await this.botService.updateLanguage(telegramId, lang);
             await ctx.reply(
-                `Xush kelibsiz, ${existing.firstName}! 👋\nSiz tizimga muvaffaqiyatli kirdingiz.\n💰 Bonus hisobingiz: ${existing.bonus}`,
-                mainMenuKeyboard,
+                t(lang, 'welcome_existing', { name: existing.firstName, bonus: existing.bonus }),
+                mainMenuKeyboard(lang),
             );
             await ctx.scene.leave();
             return;
         }
 
         (ctx.wizard.state as RegistrationState).phone = phone;
-        await ctx.reply('Ismingizni kiriting:', Markup.removeKeyboard());
+        await ctx.reply(t(lang, 'ask_first_name'), Markup.removeKeyboard());
         ctx.wizard.next();
     }
 
     @WizardStep(3)
     async handleFirstName(@Ctx() ctx: WizardCtx) {
+        const lang = this.lang(ctx);
         const message: any = (ctx as any).message;
         const text = typeof message?.text === 'string' ? message.text.trim() : '';
 
         if (await this.maybeAbort(ctx, text)) return;
 
         if (!text) {
-            await ctx.reply("Iltimos, ismingizni matn ko'rinishida kiriting:");
+            await ctx.reply(t(lang, 'invalid_first_name'));
             return;
         }
 
         (ctx.wizard.state as RegistrationState).firstName = text;
-        await ctx.reply('Familiyangizni kiriting:');
+        await ctx.reply(t(lang, 'ask_last_name'));
         ctx.wizard.next();
     }
 
     @WizardStep(4)
     async handleLastName(@Ctx() ctx: WizardCtx) {
+        const lang = this.lang(ctx);
         const message: any = (ctx as any).message;
         const text = typeof message?.text === 'string' ? message.text.trim() : '';
 
         if (await this.maybeAbort(ctx, text)) return;
 
         if (!text) {
-            await ctx.reply("Iltimos, familiyangizni matn ko'rinishida kiriting:");
+            await ctx.reply(t(lang, 'invalid_last_name'));
             return;
         }
 
@@ -140,20 +144,18 @@ export class RegistrationScene {
 
         const regions = this.regionsService.getRegionNames();
         if (regions.length === 0) {
-            await ctx.reply("Hozircha viloyatlar ro'yxati mavjud emas. Keyinroq urinib ko'ring.");
+            await ctx.reply(t(lang, 'no_regions'));
             await ctx.scene.leave();
             return;
         }
 
-        await ctx.reply(
-            'Viloyatni tanlang:',
-            Markup.keyboard(chunk(regions, 2)).oneTime().resize(),
-        );
+        await ctx.reply(t(lang, 'ask_region'), Markup.keyboard(chunk(regions, 2)).oneTime().resize());
         ctx.wizard.next();
     }
 
     @WizardStep(5)
     async handleRegion(@Ctx() ctx: WizardCtx) {
+        const lang = this.lang(ctx);
         const message: any = (ctx as any).message;
         const text = typeof message?.text === 'string' ? message.text.trim() : '';
 
@@ -161,25 +163,20 @@ export class RegistrationScene {
 
         if (!text || !this.regionsService.hasRegion(text)) {
             const regions = this.regionsService.getRegionNames();
-            await ctx.reply(
-                "Iltimos, ro'yxatdan viloyatni tanlang:",
-                Markup.keyboard(chunk(regions, 2)).oneTime().resize(),
-            );
+            await ctx.reply(t(lang, 'invalid_region'), Markup.keyboard(chunk(regions, 2)).oneTime().resize());
             return;
         }
 
         (ctx.wizard.state as RegistrationState).region = text;
 
         const districts = this.regionsService.getDistricts(text);
-        await ctx.reply(
-            'Tumanni tanlang:',
-            Markup.keyboard(chunk(districts, 2)).oneTime().resize(),
-        );
+        await ctx.reply(t(lang, 'ask_district'), Markup.keyboard(chunk(districts, 2)).oneTime().resize());
         ctx.wizard.next();
     }
 
     @WizardStep(6)
     async handleDistrict(@Ctx() ctx: WizardCtx) {
+        const lang = this.lang(ctx);
         const message: any = (ctx as any).message;
         const text = typeof message?.text === 'string' ? message.text.trim() : '';
         const state = ctx.wizard.state as RegistrationState;
@@ -189,18 +186,12 @@ export class RegistrationScene {
 
         if (!state.region || !this.regionsService.hasDistrict(state.region, text)) {
             const districts = state.region ? this.regionsService.getDistricts(state.region) : [];
-            await ctx.reply(
-                "Iltimos, ro'yxatdan tumanni tanlang:",
-                Markup.keyboard(chunk(districts, 2)).oneTime().resize(),
-            );
+            await ctx.reply(t(lang, 'invalid_district'), Markup.keyboard(chunk(districts, 2)).oneTime().resize());
             return;
         }
 
         if (!state.phone || !state.firstName || !state.lastName || !telegramId) {
-            await ctx.reply(
-                "Xatolik yuz berdi. /start buyrug'i bilan qaytadan urinib ko'ring.",
-                Markup.removeKeyboard(),
-            );
+            await ctx.reply(t(lang, 'register_error'), Markup.removeKeyboard());
             await ctx.scene.leave();
             return;
         }
@@ -213,17 +204,20 @@ export class RegistrationScene {
             region: state.region,
             district: text,
             username: ctx.from?.username ?? '',
-            language: ctx.from?.language_code ?? 'uz',
+            language: lang,
         };
 
         const user = await this.botService.createUser(payload);
 
         await ctx.reply(
-            `✅ Tabriklaymiz, ${user.firstName} ${user.lastName}!\n` +
-            `Siz muvaffaqiyatli ro'yxatdan o'tdingiz.\n` +
-            `📍 Manzil: ${user.region}, ${user.district}\n` +
-            `💰 Bonus hisobingiz: ${user.bonus}`,
-            mainMenuKeyboard,
+            t(lang, 'register_success', {
+                first: user.firstName,
+                last: user.lastName,
+                region: user.region,
+                district: user.district,
+                bonus: user.bonus,
+            }),
+            mainMenuKeyboard(lang),
         );
         await ctx.scene.leave();
     }

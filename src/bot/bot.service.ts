@@ -53,6 +53,10 @@ export class BotService {
         return this.userRepo.findOne({ where: { phone } });
     }
 
+    async updateLanguage(telegramId: number, language: string) {
+        await this.userRepo.update({ telegramId }, { language });
+    }
+
     /**
      * Sovg'a sotib olish: bonusni atomik yechish + sovg'a yozuvini yaratish —
      * BITTA transaction. Bonus yetarsiz bo'lsa null qaytaradi (hech narsa o'zgarmaydi).

@@ -1,19 +1,35 @@
 import { Markup } from 'telegraf';
-import type { ReplyKeyboardMarkup } from 'telegraf/types';
+import type { ReplyKeyboardMarkup, InlineKeyboardMarkup } from 'telegraf/types';
+import { Lang, LANGS, t } from './i18n';
 
-export const MENU_REVIEW = '🧾 Xaridni tasdiqlash';
-export const MENU_GIFTS = "🎁 Sovg'alar";
+// ===== Til tanlash (inline) =====
+export const languageKeyboard: Markup.Markup<InlineKeyboardMarkup> = Markup.inlineKeyboard([
+    [Markup.button.callback('🇺🇿 O‘zbekcha', 'setlang:uz')],
+    [Markup.button.callback('🇷🇺 Русский', 'setlang:ru')],
+    [Markup.button.callback('🇬🇧 English', 'setlang:en')],
+]);
 
-export const REVIEW_CONFIRM = '✅ Tasdiqlash';
-export const REVIEW_CANCEL = '❌ Bekor qilish';
+// ===== Asosiy menyu (tilga qarab) =====
+export function mainMenuKeyboard(lang: Lang): Markup.Markup<ReplyKeyboardMarkup> {
+    return Markup.keyboard([[t(lang, 'menu_review'), t(lang, 'menu_gifts')]]).resize();
+}
 
-export const mainMenuKeyboard: Markup.Markup<ReplyKeyboardMarkup> =
-    Markup.keyboard([[MENU_REVIEW, MENU_GIFTS]]).resize();
-
-export const reviewConfirmKeyboard: Markup.Markup<ReplyKeyboardMarkup> =
-    Markup.keyboard([[REVIEW_CONFIRM], [REVIEW_CANCEL]])
+export function reviewConfirmKeyboard(lang: Lang): Markup.Markup<ReplyKeyboardMarkup> {
+    return Markup.keyboard([[t(lang, 'btn_confirm')], [t(lang, 'btn_cancel')]])
         .resize()
         .oneTime();
+}
 
-export const cancelOnlyKeyboard: Markup.Markup<ReplyKeyboardMarkup> =
-    Markup.keyboard([[REVIEW_CANCEL]]).resize();
+export function cancelOnlyKeyboard(lang: Lang): Markup.Markup<ReplyKeyboardMarkup> {
+    return Markup.keyboard([[t(lang, 'btn_cancel')]]).resize();
+}
+
+// ===== @Hears / matn solishtirish uchun (BARCHA tillarda) =====
+export const MENU_REVIEW_ALL = LANGS.map((l) => t(l, 'menu_review'));
+export const MENU_GIFTS_ALL = LANGS.map((l) => t(l, 'menu_gifts'));
+
+const CONFIRM_ALL = LANGS.map((l) => t(l, 'btn_confirm'));
+const CANCEL_ALL = LANGS.map((l) => t(l, 'btn_cancel'));
+
+export const isReviewConfirm = (text: string): boolean => CONFIRM_ALL.includes(text);
+export const isReviewCancel = (text: string): boolean => CANCEL_ALL.includes(text);
