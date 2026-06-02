@@ -67,8 +67,9 @@ export class BotService {
             const result = await em
                 .createQueryBuilder()
                 .update(User)
-                .set({ bonus: () => `bonus - ${gift.price}` })
-                .where('telegramId = :telegramId AND bonus >= :price', {
+                .set({ bonus: () => '"bonus" - :price' })
+                .setParameter('price', gift.price)
+                .where('"telegramId" = :telegramId AND "bonus" >= :price', {
                     telegramId,
                     price: gift.price,
                 })

@@ -15,7 +15,8 @@ export class ImageUploadService {
         if (!apiKey) return null;
 
         try {
-            const fileRes = await fetch(sourceUrl);
+            const timeout = AbortSignal.timeout(10_000);
+            const fileRes = await fetch(sourceUrl, { signal: timeout });
             if (!fileRes.ok) throw new Error(`yuklab olinmadi: ${fileRes.status}`);
             const base64 = Buffer.from(await fileRes.arrayBuffer()).toString('base64');
 
@@ -23,7 +24,11 @@ export class ImageUploadService {
             body.append('key', apiKey);
             body.append('image', base64);
 
-            const up = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body });
+            const up = await fetch('https://api.imgbb.com/1/upload', {
+                method: 'POST',
+                body,
+                signal: AbortSignal.timeout(15_000),
+            });
             const json = (await up.json()) as any;
             if (!json?.success) throw new Error('ImgBB rad etdi');
 
