@@ -43,6 +43,10 @@ export class SchemaBootstrapService implements OnModuleInit {
             'gift_purchases.delivered',
             `ALTER TABLE "gift_purchases" ADD COLUMN IF NOT EXISTS "delivered" boolean NOT NULL DEFAULT false`,
         );
+        await this.run(
+            'gift_purchases.status',
+            `ALTER TABLE "gift_purchases" ADD COLUMN IF NOT EXISTS "status" varchar NOT NULL DEFAULT 'pending'`,
+        );
 
         // Xaridda nechta dona olingani
         await this.run(

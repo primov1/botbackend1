@@ -364,7 +364,7 @@ export class BotUpdate {
         }
 
         await ctx.reply(
-            t(lang, 'gift_success', { title: gift.title, price: gift.price, bonus: updated.bonus }),
+            t(lang, 'gift_requested', { title: gift.title, price: gift.price, bonus: updated.bonus }),
             mainMenuKeyboard(lang),
         );
     }

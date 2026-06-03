@@ -35,7 +35,12 @@ export class GiftPurchase {
     @Column({ type: 'int', default: 0 })
     price: number;
 
-    // Admin sovg'ani yetkazib berdimi (fulfillment tracking)
+    // Admin tasdig'i: pending / approved / rejected
+    @Index()
+    @Column({ type: 'varchar', default: 'pending' })
+    status: 'pending' | 'approved' | 'rejected';
+
+    // Admin sovg'ani yetkazib berdimi (tasdiqlangach)
     @Index()
     @Column({ type: 'boolean', default: false })
     delivered: boolean;
