@@ -35,6 +35,11 @@ export class GiftPurchase {
     @Column({ type: 'int', default: 0 })
     price: number;
 
+    // Admin sovg'ani yetkazib berdimi (fulfillment tracking)
+    @Index()
+    @Column({ type: 'boolean', default: false })
+    delivered: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 

@@ -37,6 +37,12 @@ export class SchemaBootstrapService implements OnModuleInit {
         await this.run('phone DROP DEFAULT', `ALTER TABLE "users" ALTER COLUMN "phone" DROP DEFAULT`);
         await this.run('phone DROP NOT NULL', `ALTER TABLE "users" ALTER COLUMN "phone" DROP NOT NULL`);
         await this.run('phone "" -> NULL', `UPDATE "users" SET "phone" = NULL WHERE "phone" = ''`);
+
+        // Sovg'a buyurtmalari uchun "yetkazildi" belgisi (admin paneli kuzatadi)
+        await this.run(
+            'gift_purchases.delivered',
+            `ALTER TABLE "gift_purchases" ADD COLUMN IF NOT EXISTS "delivered" boolean NOT NULL DEFAULT false`,
+        );
     }
 
     private async run(label: string, sql: string): Promise<void> {
