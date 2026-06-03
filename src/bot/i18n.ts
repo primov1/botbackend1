@@ -33,7 +33,8 @@ type Key =
     | 'product_info' | 'channel_warning' | 'product_info_plain'
     | 'press_confirm' | 'canceled' | 'please_press_button'
     | 'send_proof' | 'please_send_photo' | 'already_pending'
-    | 'review_accepted' | 'channel_note';
+    | 'review_accepted' | 'channel_note'
+    | 'ask_quantity' | 'invalid_quantity';
 
 const messages: Record<Lang, Record<Key, string>> = {
     // ============================ O'ZBEK ============================
@@ -100,6 +101,8 @@ const messages: Record<Lang, Record<Key, string>> = {
         press_confirm: "Ushbu mahsulotni sotib olgan bo'lsangiz Tasdiqlash tugmasini bosing. 👇",
         canceled: 'Bekor qilindi.',
         please_press_button: 'Iltimos, pastdagi tugmani bosing.',
+        ask_quantity: "🔢 Nechta dona sotib oldingiz? Sonni yozing (masalan: 1, 2, 3):",
+        invalid_quantity: "❌ Noto'g'ri son. 1 dan 100 gacha butun son yozing:",
         send_proof: 'Bonus hisoblash uchun chek rasmini yuboring 📸',
         please_send_photo: 'Iltimos, chek RASMINI yuboring (matn yoki fayl emas).',
         already_pending:
@@ -175,6 +178,8 @@ const messages: Record<Lang, Record<Key, string>> = {
         press_confirm: 'Если вы купили этот товар, нажмите кнопку Подтвердить. 👇',
         canceled: 'Отменено.',
         please_press_button: 'Пожалуйста, нажмите кнопку ниже.',
+        ask_quantity: '🔢 Сколько штук вы купили? Введите число (например: 1, 2, 3):',
+        invalid_quantity: '❌ Неверное число. Введите целое число от 1 до 100:',
         send_proof: 'Для начисления бонуса отправьте фото чека 📸',
         please_send_photo: 'Пожалуйста, отправьте именно ФОТО чека (не текст и не файл).',
         already_pending: '⏳ Заявка по этому товару уже отправлена. Ожидайте подтверждения админа.',
@@ -249,6 +254,8 @@ const messages: Record<Lang, Record<Key, string>> = {
         press_confirm: 'If you bought this product, press the Confirm button. 👇',
         canceled: 'Cancelled.',
         please_press_button: 'Please press the button below.',
+        ask_quantity: '🔢 How many units did you buy? Enter a number (e.g. 1, 2, 3):',
+        invalid_quantity: '❌ Invalid number. Enter a whole number from 1 to 100:',
         send_proof: 'To calculate the bonus, send a photo of the receipt 📸',
         please_send_photo: 'Please send a PHOTO of the receipt (not text or a file).',
         already_pending: '⏳ A review for this product has already been submitted. Wait for admin approval.',

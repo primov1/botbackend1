@@ -19,6 +19,7 @@ export interface CreateUserPayload {
 export interface CreateReviewPurchasePayload {
     userId: number;
     productId: number;
+    quantity: number;
     bonus: number;
     proofImage: string;
 }
@@ -96,6 +97,7 @@ export class BotService {
         const purchase = this.purchaseRepo.create({
             userId: payload.userId,
             productId: payload.productId,
+            quantity: payload.quantity,
             bonus: payload.bonus,
             status: 'pending',
             reviewSubmitted: true,

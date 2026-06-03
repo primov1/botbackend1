@@ -35,6 +35,9 @@ export class Purchase {
     @JoinColumn({ name: 'productId' })
     product: Product;
 
+    @Column({ type: 'int', default: 1 })
+    quantity: number;
+
     @Column({ type: 'int', default: 0 })
     bonus: number;
 

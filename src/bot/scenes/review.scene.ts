@@ -15,6 +15,7 @@ export const REVIEW_SCENE = 'REVIEW_SCENE';
 
 interface ReviewState {
     productId?: number;
+    quantity?: number;
     lang?: Lang;
 }
 
@@ -113,11 +114,35 @@ export class ReviewScene {
             return;
         }
 
-        await ctx.reply(t(lang, 'send_proof'), cancelOnlyKeyboard(lang));
+        // Avval nechta dona olganini so'raymiz
+        await ctx.reply(t(lang, 'ask_quantity'), cancelOnlyKeyboard(lang));
         ctx.wizard.next();
     }
 
     @WizardStep(3)
+    async waitForQuantity(@Ctx() ctx: WizardCtx) {
+        const lang = this.lang(ctx);
+        const message: any = (ctx as any).message;
+        const text = typeof message?.text === 'string' ? message.text.trim() : '';
+
+        if (isReviewCancel(text)) {
+            await ctx.reply(t(lang, 'canceled'), mainMenuKeyboard(lang));
+            await ctx.scene.leave();
+            return;
+        }
+
+        const qty = Number(text);
+        if (!Number.isInteger(qty) || qty < 1 || qty > 100) {
+            await ctx.reply(t(lang, 'invalid_quantity'), cancelOnlyKeyboard(lang));
+            return;
+        }
+
+        (ctx.wizard.state as ReviewState).quantity = qty;
+        await ctx.reply(t(lang, 'send_proof'), cancelOnlyKeyboard(lang));
+        ctx.wizard.next();
+    }
+
+    @WizardStep(4)
     async waitForPhoto(@Ctx() ctx: WizardCtx) {
         const lang = this.lang(ctx);
         const message: any = (ctx as any).message;
@@ -178,10 +203,14 @@ export class ReviewScene {
             this.logger.warn(`Rasm havolasini olib bo'lmadi: ${(err as Error).message}`);
         }
 
+        const quantity = (ctx.wizard.state as ReviewState).quantity ?? 1;
+        const totalBonus = product.bonus * quantity;
+
         await this.botService.createReviewPurchase({
             userId: user.id,
             productId: product.id,
-            bonus: product.bonus,
+            quantity,
+            bonus: totalBonus,
             proofImage,
         });
 
@@ -191,7 +220,7 @@ export class ReviewScene {
                 : '';
 
         await ctx.reply(
-            t(lang, 'review_accepted', { bonus: product.bonus, channelNote }),
+            t(lang, 'review_accepted', { bonus: totalBonus, channelNote }),
             mainMenuKeyboard(lang),
         );
         await ctx.scene.leave();
