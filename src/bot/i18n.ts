@@ -37,7 +37,8 @@ type Key =
     | 'press_confirm' | 'canceled' | 'please_press_button'
     | 'send_proof' | 'please_send_photo' | 'already_pending'
     | 'review_accepted' | 'channel_note'
-    | 'ask_quantity' | 'invalid_quantity';
+    | 'ask_quantity' | 'invalid_quantity'
+    | 'ask_codes' | 'ask_codes_multi' | 'invalid_codes';
 
 const messages: Record<Lang, Record<Key, string>> = {
     // ============================ O'ZBEK ============================
@@ -120,6 +121,9 @@ const messages: Record<Lang, Record<Key, string>> = {
         please_press_button: 'Iltimos, pastdagi tugmani bosing.',
         ask_quantity: "🔢 Nechta dona sotib oldingiz? Sonni yozing (masalan: 1, 2, 3):",
         invalid_quantity: "❌ Noto'g'ri son. 1 dan 100 gacha butun son yozing:",
+        ask_codes: "🏷 Mahsulot stikeridan 7 ta belgili kodni kiriting:",
+        ask_codes_multi: "🏷 Har bir mahsulot uchun 7 ta belgili kodni kiriting — har birini yangi qatordan ({qty} ta kod):",
+        invalid_codes: "❌ Kodlar noto'g'ri. Har biri aynan 7 ta belgi bo'lishi kerak. Qayta kiriting:",
         send_proof: 'Bonus hisoblash uchun chek rasmini yuboring 📸',
         please_send_photo: 'Iltimos, chek RASMINI yuboring (matn yoki fayl emas).',
         already_pending:
@@ -211,6 +215,9 @@ const messages: Record<Lang, Record<Key, string>> = {
         please_press_button: 'Пожалуйста, нажмите кнопку ниже.',
         ask_quantity: '🔢 Сколько штук вы купили? Введите число (например: 1, 2, 3):',
         invalid_quantity: '❌ Неверное число. Введите целое число от 1 до 100:',
+        ask_codes: '🏷 Введите 7-значный код с наклейки товара:',
+        ask_codes_multi: '🏷 Введите 7-значный код для каждого товара — каждый с новой строки ({qty} кода):',
+        invalid_codes: '❌ Коды неверны. Каждый должен быть ровно 7 символов. Попробуйте снова:',
         send_proof: 'Для начисления бонуса отправьте фото чека 📸',
         please_send_photo: 'Пожалуйста, отправьте именно ФОТО чека (не текст и не файл).',
         already_pending: '⏳ Заявка по этому товару уже отправлена. Ожидайте подтверждения админа.',
@@ -301,6 +308,9 @@ const messages: Record<Lang, Record<Key, string>> = {
         please_press_button: 'Please press the button below.',
         ask_quantity: '🔢 How many units did you buy? Enter a number (e.g. 1, 2, 3):',
         invalid_quantity: '❌ Invalid number. Enter a whole number from 1 to 100:',
+        ask_codes: '🏷 Enter the 7-character code from the product sticker:',
+        ask_codes_multi: '🏷 Enter the 7-character code for each product — one per line ({qty} codes):',
+        invalid_codes: '❌ Invalid codes. Each must be exactly 7 characters. Please try again:',
         send_proof: 'To calculate the bonus, send a photo of the receipt 📸',
         please_send_photo: 'Please send a PHOTO of the receipt (not text or a file).',
         already_pending: '⏳ A review for this product has already been submitted. Wait for admin approval.',

@@ -28,6 +28,7 @@ export interface CreateReviewPurchasePayload {
     quantity: number;
     bonus: number;
     proofImage: string;
+    reviewNote?: string;
 }
 
 @Injectable()
@@ -166,6 +167,7 @@ export class BotService {
             status: 'pending',
             reviewSubmitted: true,
             proofImage: payload.proofImage,
+            reviewNote: payload.reviewNote ?? '',
         });
         return this.purchaseRepo.save(purchase);
     }

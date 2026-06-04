@@ -17,6 +17,7 @@ export const REVIEW_SCENE = 'REVIEW_SCENE';
 interface ReviewState {
     productId?: number;
     quantity?: number;
+    productCodes?: string[];
     lang?: Lang;
     fromCode?: boolean;
     code?: string;
@@ -113,15 +114,15 @@ export class ReviewScene {
             );
         }
 
-        // KOD REJIMIDA: tasdiqlash/miqdorni o'tkazib, to'g'ridan chek yuklashga
+        // KOD REJIMIDA: miqdor/kod o'tkazib, to'g'ridan chek yuklashga
         if (fromCode) {
             await ctx.reply(t(lang, 'send_proof'), cancelOnlyKeyboard(lang));
-            ctx.wizard.selectStep(3); // WizardStep(4) = chek rasmi (index 3)
+            ctx.wizard.selectStep(4); // WizardStep(5) = chek rasmi (index 4)
             return;
         }
 
         await ctx.reply(t(lang, 'ask_quantity'), cancelOnlyKeyboard(lang));
-        ctx.wizard.selectStep(2); // WizardStep(3) = miqdor
+        ctx.wizard.selectStep(2); // WizardStep(3) = miqdor (index 2)
     }
 
     @WizardStep(2)
@@ -165,11 +166,45 @@ export class ReviewScene {
         }
 
         (ctx.wizard.state as ReviewState).quantity = qty;
-        await ctx.reply(t(lang, 'send_proof'), cancelOnlyKeyboard(lang));
-        ctx.wizard.next();
+
+        // Kod(lar)ni so'raymiz
+        const prompt = qty === 1
+            ? t(lang, 'ask_codes')
+            : t(lang, 'ask_codes_multi', { qty });
+        await ctx.reply(prompt, cancelOnlyKeyboard(lang));
+        ctx.wizard.next(); // → WizardStep(4)
     }
 
     @WizardStep(4)
+    async waitForCodes(@Ctx() ctx: WizardCtx) {
+        const lang = this.lang(ctx);
+        const message: any = (ctx as any).message;
+        const text = typeof message?.text === 'string' ? message.text.trim() : '';
+
+        if (isReviewCancel(text)) {
+            await ctx.reply(t(lang, 'canceled'), mainMenuKeyboard(lang));
+            await ctx.scene.leave();
+            return;
+        }
+
+        const qty = (ctx.wizard.state as ReviewState).quantity ?? 1;
+        const lines = text.split('\n').map((l: string) => l.trim().toUpperCase()).filter(Boolean);
+        const valid = lines.length === qty && lines.every((c: string) => c.length === 7);
+
+        if (!valid) {
+            const prompt = qty === 1
+                ? t(lang, 'ask_codes')
+                : t(lang, 'ask_codes_multi', { qty });
+            await ctx.reply(`${t(lang, 'invalid_codes')}\n\n${prompt}`, cancelOnlyKeyboard(lang));
+            return;
+        }
+
+        (ctx.wizard.state as ReviewState).productCodes = lines;
+        await ctx.reply(t(lang, 'send_proof'), cancelOnlyKeyboard(lang));
+        ctx.wizard.next(); // → WizardStep(5)
+    }
+
+    @WizardStep(5)
     async waitForPhoto(@Ctx() ctx: WizardCtx) {
         const lang = this.lang(ctx);
         const message: any = (ctx as any).message;
@@ -232,6 +267,8 @@ export class ReviewScene {
 
         const quantity = (ctx.wizard.state as ReviewState).quantity ?? 1;
         const totalBonus = product.bonus * quantity;
+        const productCodes = (ctx.wizard.state as ReviewState).productCodes ?? [];
+        const reviewNote = productCodes.length ? `Kodlar: ${productCodes.join(', ')}` : '';
 
         await this.botService.createReviewPurchase({
             userId: user.id,
@@ -239,6 +276,7 @@ export class ReviewScene {
             quantity,
             bonus: totalBonus,
             proofImage,
+            reviewNote,
         });
 
         // KOD REJIMI: kodni ishlatilgan deb belgilaymiz (qayta ishlatilmasin)
