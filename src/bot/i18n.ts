@@ -111,10 +111,10 @@ const messages: Record<Lang, Record<Key, string>> = {
         btn_telegram: "📢 Telegram kanalga obuna bo'lish",
         btn_instagram: "📸 Instagram sahifaga o'tish",
         product_info:
-            '📦 <b>Mahsulot:</b> {title}\n🎁 <b>Xarid va sharh uchun bonus: +{bonus} ball</b>\n\n{channelWarn}🛍 Xarid qilgan mahsulotingizni Uzum Marketga o\'tib, sharh va 5 ta yulduzcha qo\'ying, so\'ng chek rasmini yuboring 👇',
+            '📦 <b>Mahsulot:</b> {title}\n🎁 <b>Xarid va sharh uchun bonus: +{bonus} ball</b>\n\n{channelWarn}<b>Vazifani bajarish tartibi:</b>\n\n1. Quyidagi tugma orqali Uzum Marketga o\'ting.\n2. Mahsulotga 5 ta yulduzcha (⭐⭐⭐⭐⭐) qo\'yib, ijobiy sharh yozing.\n3. Qoldirgan sharhingiz va chek skrinshotini botga yuboring.\n\n<i>Rasm yuborganingizdan so\'ng, pastdagi "Tasdiqlash" tugmasini bosing!</i>',
         channel_warning: "⚠️ <b>Diqqat!</b> Bonus olish uchun quyidagi kanal/sahifaga obuna bo'ling:\n",
         product_info_plain:
-            '📦 Mahsulot: {title}\n🎁 Xarid va sharh uchun bonus: +{bonus} ball\n\n🛍 Xarid qilgan mahsulotingizni Uzum Marketga o\'tib, sharh va 5 ta yulduzcha qo\'ying, so\'ng chek rasmini yuboring 👇',
+            '📦 Mahsulot: {title}\n🎁 Xarid va sharh uchun bonus: +{bonus} ball\n\nVazifani bajarish tartibi:\n\n1. Quyidagi tugma orqali Uzum Marketga o\'ting.\n2. Mahsulotga 5 ta yulduzcha (⭐⭐⭐⭐⭐) qo\'yib, ijobiy sharh yozing.\n3. Qoldirgan sharhingiz va chek skrinshotini botga yuboring.\n\nRasm yuborganingizdan so\'ng, pastdagi "Tasdiqlash" tugmasini bosing!',
         press_confirm: "Ushbu mahsulotni sotib olgan bo'lsangiz Tasdiqlash tugmasini bosing. 👇",
         canceled: 'Bekor qilindi.',
         please_press_button: 'Iltimos, pastdagi tugmani bosing.',
@@ -201,11 +201,11 @@ const messages: Record<Lang, Record<Key, string>> = {
         btn_telegram: '📢 Подписаться на Telegram-канал',
         btn_instagram: '📸 Перейти в Instagram',
         product_info:
-            '📦 <b>Товар:</b> {title}\n🎁 <b>Бонус за покупку и отзыв: +{bonus} баллов</b>\n\n{channelWarn}🛍 Перейдите в Uzum Market, оставьте отзыв и 5 звёзд, затем отправьте фото чека 👇',
+            '📦 <b>Товар:</b> {title}\n🎁 <b>Бонус за покупку и отзыв: +{bonus} баллов</b>\n\n{channelWarn}<b>Порядок выполнения:</b>\n\n1. Перейдите в Uzum Market по кнопке ниже.\n2. Оставьте 5 звёзд (⭐⭐⭐⭐⭐) и напишите положительный отзыв.\n3. Отправьте скриншот отзыва и чека в бот.\n\n<i>После отправки фото нажмите кнопку "Подтвердить"!</i>',
         channel_warning:
             '⚠️ <b>Внимание!</b> Чтобы получить бонус, подпишитесь на канал/страницу ниже:\n',
         product_info_plain:
-            '📦 Товар: {title}\n🎁 Бонус за покупку и отзыв: +{bonus} баллов\n\n🛍 Перейдите в Uzum Market, оставьте отзыв и 5 звёзд, затем отправьте фото чека 👇',
+            '📦 Товар: {title}\n🎁 Бонус за покупку и отзыв: +{bonus} баллов\n\nПорядок выполнения:\n\n1. Перейдите в Uzum Market по кнопке ниже.\n2. Оставьте 5 звёзд (⭐⭐⭐⭐⭐) и напишите положительный отзыв.\n3. Отправьте скриншот отзыва и чека в бот.\n\nПосле отправки фото нажмите кнопку "Подтвердить"!',
         press_confirm: 'Если вы купили этот товар, нажмите кнопку Подтвердить. 👇',
         canceled: 'Отменено.',
         please_press_button: 'Пожалуйста, нажмите кнопку ниже.',
@@ -291,11 +291,11 @@ const messages: Record<Lang, Record<Key, string>> = {
         btn_telegram: '📢 Subscribe to Telegram channel',
         btn_instagram: '📸 Go to Instagram',
         product_info:
-            '📦 <b>Product:</b> {title}\n🎁 <b>Bonus for purchase & review: +{bonus} points</b>\n\n{channelWarn}🛍 Go to Uzum Market, leave a review and 5 stars, then send a photo of the receipt 👇',
+            '📦 <b>Product:</b> {title}\n🎁 <b>Bonus for purchase & review: +{bonus} points</b>\n\n{channelWarn}<b>How to complete:</b>\n\n1. Go to Uzum Market via the button below.\n2. Leave 5 stars (⭐⭐⭐⭐⭐) and write a positive review.\n3. Send a screenshot of your review and receipt to the bot.\n\n<i>After sending the photo, press the "Confirm" button!</i>',
         channel_warning:
             '⚠️ <b>Attention!</b> To receive the bonus, subscribe to the channel/page below:\n',
         product_info_plain:
-            '📦 Product: {title}\n🎁 Bonus for purchase & review: +{bonus} points\n\n🛍 Go to Uzum Market, leave a review and 5 stars, then send a photo of the receipt 👇',
+            '📦 Product: {title}\n🎁 Bonus for purchase & review: +{bonus} points\n\nHow to complete:\n\n1. Go to Uzum Market via the button below.\n2. Leave 5 stars (⭐⭐⭐⭐⭐) and write a positive review.\n3. Send a screenshot of your review and receipt to the bot.\n\nAfter sending the photo, press the "Confirm" button!',
         press_confirm: 'If you bought this product, press the Confirm button. 👇',
         canceled: 'Cancelled.',
         please_press_button: 'Please press the button below.',

@@ -120,8 +120,8 @@ export class ReviewScene {
             return;
         }
 
-        await ctx.reply(t(lang, 'press_confirm'), reviewConfirmKeyboard(lang));
-        ctx.wizard.next();
+        await ctx.reply(t(lang, 'ask_quantity'), cancelOnlyKeyboard(lang));
+        ctx.wizard.selectStep(2); // WizardStep(3) = miqdor
     }
 
     @WizardStep(2)
