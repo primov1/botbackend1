@@ -5,7 +5,7 @@ import { BotService, CreateUserPayload } from '../bot.service';
 import { RegionsService } from '../regions.service';
 import { mainMenuKeyboard } from '../keyboards';
 import { Lang, normalizeLang, t } from '../i18n';
-import { REVIEW_SCENE } from './review.scene';
+import { CodeScene } from './code.scene';
 
 export const REGISTRATION_SCENE = 'REGISTRATION_SCENE';
 
@@ -224,9 +224,10 @@ export class RegistrationScene {
         // QR-2 orqali kelgan bo'lsa — ro'yxatdan keyin to'g'ridan chek yuklashga
         const pendingCode = (ctx.session as any)?.pendingCode;
         await ctx.scene.leave();
-        if (pendingCode) {
+        if (pendingCode && telegramId) {
             delete (ctx.session as any).pendingCode;
-            await ctx.scene.enter(REVIEW_SCENE, { code: String(pendingCode), fromCode: true, lang });
+            const result = await this.botService.redeemCode(telegramId, String(pendingCode));
+            await CodeScene.replyResult(ctx, lang, result);
         }
     }
 }

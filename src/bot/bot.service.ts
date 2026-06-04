@@ -4,6 +4,12 @@ import { DataSource, Repository } from 'typeorm';
 import { User } from '../common/entities/user.entity';
 import { Purchase } from '../common/entities/purchase.entity';
 import { GiftPurchase } from '../common/entities/gift-purchase.entity';
+import { Code } from '../common/entities/code.entity';
+import { Product } from '../common/entities/product.entity';
+
+export type RedeemResult =
+    | { ok: true; points: number; newBonus: number; productTitle: string }
+    | { ok: false; reason: 'not_registered' | 'invalid' };
 
 export interface CreateUserPayload {
     telegramId: number;
@@ -56,6 +62,64 @@ export class BotService {
 
     async updateLanguage(telegramId: number, language: string) {
         await this.userRepo.update({ telegramId }, { language });
+    }
+
+    /**
+     * Kodni tasdiqlash (avtomatik): kodni tekshiradi, ishlatilgan deb belgilaydi,
+     * tasdiqlangan xarid yaratadi va bonusni QO'SHADI — BARCHASI BITTA transaction.
+     * Bonus = kodning ballidan (points). Race'ga qarshi pessimistic lock.
+     */
+    async redeemCode(telegramId: number, codeStr: string): Promise<RedeemResult> {
+        const code = (codeStr ?? '').trim().toUpperCase();
+        const user = await this.findByTelegramId(telegramId);
+        if (!user) return { ok: false, reason: 'not_registered' };
+
+        return this.dataSource.transaction(async (em) => {
+            const rec = await em.findOne(Code, {
+                where: { code },
+                lock: { mode: 'pessimistic_write' },
+            });
+            if (!rec) return { ok: false, reason: 'invalid' } as RedeemResult;
+            if (rec.isUsed) return { ok: false, reason: 'invalid' } as RedeemResult;
+            if (new Date(rec.expiresAt).getTime() < Date.now()) {
+                return { ok: false, reason: 'invalid' } as RedeemResult;
+            }
+
+            // Kodni ishlatilgan deb belgilaymiz
+            rec.isUsed = true;
+            rec.usedByUserId = user.id;
+            rec.usedAt = new Date();
+            await em.save(rec);
+
+            // Tasdiqlangan xarid yozuvi (admin panelda ko'rinadi, user /orders da ko'radi)
+            await em.insert(Purchase, {
+                userId: user.id,
+                productId: rec.productId && rec.productId > 0 ? rec.productId : null,
+                quantity: 1,
+                bonus: rec.points,
+                status: 'approved',
+                reviewSubmitted: false,
+                proofImage: '',
+                reviewNote: `Kod: ${rec.code}`,
+                reviewedAt: new Date(),
+            });
+
+            // Bonusni qo'shamiz
+            if (rec.points > 0) {
+                await em.increment(User, { id: user.id }, 'bonus', rec.points);
+            }
+
+            const product = rec.productId
+                ? await em.findOne(Product, { where: { id: rec.productId } })
+                : null;
+
+            return {
+                ok: true,
+                points: rec.points,
+                newBonus: user.bonus + rec.points,
+                productTitle: product?.title ?? '',
+            } as RedeemResult;
+        });
     }
 
     /**
