@@ -27,6 +27,13 @@ export class CodesService {
         }
     }
 
+    /** Bir necha kodni tekshirish — har birining holati va ballini qaytaradi. */
+    async validateMultiple(codes: string[]): Promise<{ code: string; rec: Code | null }[]> {
+        return Promise.all(
+            codes.map(async (code) => ({ code, rec: await this.validate(code) })),
+        );
+    }
+
     /** Ishlatilgan deb belgilash — atomik (faqat ishlatilmagan bo'lsa). */
     async markUsed(codeId: number, userId: number): Promise<boolean> {
         try {

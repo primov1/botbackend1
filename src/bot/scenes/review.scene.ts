@@ -18,6 +18,8 @@ interface ReviewState {
     productId?: number;
     quantity?: number;
     productCodes?: string[];
+    codeIds?: number[];
+    codesBonus?: number;
     lang?: Lang;
     fromCode?: boolean;
     code?: string;
@@ -188,18 +190,44 @@ export class ReviewScene {
         }
 
         const qty = (ctx.wizard.state as ReviewState).quantity ?? 1;
-        const lines = text.split('\n').map((l: string) => l.trim().toUpperCase()).filter(Boolean);
-        const valid = lines.length === qty && lines.every((c: string) => c.length === 7);
+        const entered = text.split('\n').map((l: string) => l.trim().toUpperCase()).filter(Boolean);
 
-        if (!valid) {
-            const prompt = qty === 1
-                ? t(lang, 'ask_codes')
-                : t(lang, 'ask_codes_multi', { qty });
+        if (entered.length !== qty || entered.some((c: string) => c.length !== 7)) {
+            const prompt = qty === 1 ? t(lang, 'ask_codes') : t(lang, 'ask_codes_multi', { qty });
             await ctx.reply(`${t(lang, 'invalid_codes')}\n\n${prompt}`, cancelOnlyKeyboard(lang));
             return;
         }
 
-        (ctx.wizard.state as ReviewState).productCodes = lines;
+        // Har bir kodni DB dan tekshirish
+        const results = await this.codesService.validateMultiple(entered);
+        const invalid = results.filter((r) => !r.rec);
+
+        if (invalid.length > 0) {
+            const list = invalid.map((r) => `• ${r.code}`).join('\n');
+            await ctx.reply(
+                t(lang, 'code_not_found_list', { list }),
+                cancelOnlyKeyboard(lang),
+            );
+            return;
+        }
+
+        // Bonus preview ko'rsatish
+        const recs = results.map((r) => r.rec!);
+        const codeIds = recs.map((r) => r.id);
+        const codesBonus = recs.reduce((sum, r) => sum + (r.points ?? 0), 0);
+
+        (ctx.wizard.state as ReviewState).productCodes = entered;
+        (ctx.wizard.state as ReviewState).codeIds = codeIds;
+        (ctx.wizard.state as ReviewState).codesBonus = codesBonus;
+
+        const previewLines = recs
+            .map((r, i) => `${i + 1}. ${entered[i]} — <b>+${r.points} ball</b>`)
+            .join('\n');
+
+        await ctx.reply(
+            t(lang, 'codes_preview', { lines: previewLines, total: codesBonus }),
+            { parse_mode: 'HTML', ...cancelOnlyKeyboard(lang) },
+        );
         await ctx.reply(t(lang, 'send_proof'), cancelOnlyKeyboard(lang));
         ctx.wizard.next(); // → WizardStep(5)
     }
@@ -266,9 +294,15 @@ export class ReviewScene {
         }
 
         const quantity = (ctx.wizard.state as ReviewState).quantity ?? 1;
-        const totalBonus = product.bonus * quantity;
+        const codesBonus = (ctx.wizard.state as ReviewState).codesBonus;
         const productCodes = (ctx.wizard.state as ReviewState).productCodes ?? [];
-        const reviewNote = productCodes.length ? `Kodlar: ${productCodes.join(', ')}` : '';
+        const codeIds = (ctx.wizard.state as ReviewState).codeIds ?? [];
+
+        // Bonus: kodlar ballidan (agar bor bo'lsa), aks holda mahsulot ballidan
+        const totalBonus = codesBonus !== undefined ? codesBonus : product.bonus * quantity;
+        const reviewNote = productCodes.length
+            ? `Kodlar: ${productCodes.join(', ')} [ids:${codeIds.join(',')}]`
+            : '';
 
         await this.botService.createReviewPurchase({
             userId: user.id,

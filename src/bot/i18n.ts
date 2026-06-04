@@ -38,7 +38,8 @@ type Key =
     | 'send_proof' | 'please_send_photo' | 'already_pending'
     | 'review_accepted' | 'channel_note'
     | 'ask_quantity' | 'invalid_quantity'
-    | 'ask_codes' | 'ask_codes_multi' | 'invalid_codes';
+    | 'ask_codes' | 'ask_codes_multi' | 'invalid_codes'
+    | 'codes_preview' | 'code_not_found_list';
 
 const messages: Record<Lang, Record<Key, string>> = {
     // ============================ O'ZBEK ============================
@@ -124,6 +125,8 @@ const messages: Record<Lang, Record<Key, string>> = {
         ask_codes: "🏷 Mahsulot stikeridan 7 ta belgili kodni kiriting:",
         ask_codes_multi: "🏷 Har bir mahsulot uchun 7 ta belgili kodni kiriting — har birini yangi qatordan ({qty} ta kod):",
         invalid_codes: "❌ Kodlar noto'g'ri. Har biri aynan 7 ta belgi bo'lishi kerak. Qayta kiriting:",
+        codes_preview: "✅ Kodlar topildi!\n\n{lines}\n\n💰 Jami bonus: <b>+{total} ball</b>\n<i>(Admin chekni tasdiqlangach hisobingizga tushadi)</i>",
+        code_not_found_list: "❌ Quyidagi kodlar topilmadi yoki allaqachon ishlatilgan:\n{list}\n\nQayta tekshirib kiriting:",
         send_proof: 'Bonus hisoblash uchun chek rasmini yuboring 📸',
         please_send_photo: 'Iltimos, chek RASMINI yuboring (matn yoki fayl emas).',
         already_pending:
@@ -218,6 +221,8 @@ const messages: Record<Lang, Record<Key, string>> = {
         ask_codes: '🏷 Введите 7-значный код с наклейки товара:',
         ask_codes_multi: '🏷 Введите 7-значный код для каждого товара — каждый с новой строки ({qty} кода):',
         invalid_codes: '❌ Коды неверны. Каждый должен быть ровно 7 символов. Попробуйте снова:',
+        codes_preview: '✅ Коды найдены!\n\n{lines}\n\n💰 Итого бонус: <b>+{total} баллов</b>\n<i>(Зачислится после подтверждения чека админом)</i>',
+        code_not_found_list: '❌ Следующие коды не найдены или уже использованы:\n{list}\n\nПроверьте и введите снова:',
         send_proof: 'Для начисления бонуса отправьте фото чека 📸',
         please_send_photo: 'Пожалуйста, отправьте именно ФОТО чека (не текст и не файл).',
         already_pending: '⏳ Заявка по этому товару уже отправлена. Ожидайте подтверждения админа.',
@@ -311,6 +316,8 @@ const messages: Record<Lang, Record<Key, string>> = {
         ask_codes: '🏷 Enter the 7-character code from the product sticker:',
         ask_codes_multi: '🏷 Enter the 7-character code for each product — one per line ({qty} codes):',
         invalid_codes: '❌ Invalid codes. Each must be exactly 7 characters. Please try again:',
+        codes_preview: '✅ Codes found!\n\n{lines}\n\n💰 Total bonus: <b>+{total} points</b>\n<i>(Will be credited after admin approves the receipt)</i>',
+        code_not_found_list: '❌ The following codes were not found or already used:\n{list}\n\nPlease check and try again:',
         send_proof: 'To calculate the bonus, send a photo of the receipt 📸',
         please_send_photo: 'Please send a PHOTO of the receipt (not text or a file).',
         already_pending: '⏳ A review for this product has already been submitted. Wait for admin approval.',
