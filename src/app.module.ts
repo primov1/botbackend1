@@ -11,6 +11,7 @@ import { Product } from './common/entities/product.entity';
 import { Gift } from './common/entities/gift.entity';
 import { Purchase } from './common/entities/purchase.entity';
 import { GiftPurchase } from './common/entities/gift-purchase.entity';
+import { Code } from './common/entities/code.entity';
 import { PgSessionStore } from './common/pg-session.store';
 import { SchemaBootstrapService } from './common/schema-bootstrap.service';
 import { HealthController } from './health/health.controller';
@@ -29,7 +30,7 @@ import { HealthController } from './health/health.controller';
                         : false;
                 const base = {
                     type: 'postgres' as const,
-                    entities: [User, Product, Gift, Purchase, GiftPurchase],
+                    entities: [User, Product, Gift, Purchase, GiftPurchase, Code],
                     synchronize: config.get<string>('NODE_ENV') !== 'production',
                     logging: config.get<string>('NODE_ENV') === 'development',
                     ssl,

@@ -4,6 +4,7 @@ import { Markup, Scenes } from 'telegraf';
 import { BotService } from '../bot.service';
 import { BotCatalogService } from '../bot-catalog.service';
 import { ImageUploadService } from '../../common/image-upload.service';
+import { CodesService } from '../codes.service';
 import { escapeHtml, isValidButtonUrl } from '../../common/telegram.util';
 import {
     cancelOnlyKeyboard, mainMenuKeyboard, reviewConfirmKeyboard,
@@ -17,6 +18,9 @@ interface ReviewState {
     productId?: number;
     quantity?: number;
     lang?: Lang;
+    fromCode?: boolean;
+    code?: string;
+    codeId?: number;
 }
 
 type WizardCtx = Scenes.WizardContext;
@@ -30,6 +34,7 @@ export class ReviewScene {
         private readonly catalogService: BotCatalogService,
         private readonly botService: BotService,
         private readonly imageUpload: ImageUploadService,
+        private readonly codesService: CodesService,
     ) {}
 
     private lang(ctx: WizardCtx): Lang {
@@ -39,12 +44,27 @@ export class ReviewScene {
     @WizardStep(1)
     async start(@Ctx() ctx: WizardCtx) {
         const enterState = (ctx.scene.state as ReviewState) || {};
-        const productId = Number(enterState.productId);
+        let productId = Number(enterState.productId);
 
         // Foydalanuvchi tilini aniqlab, wizard state'ga saqlaymiz
         const user = await this.botService.findByTelegramId(ctx.from?.id ?? 0);
         const lang = normalizeLang(user?.language);
         (ctx.wizard.state as ReviewState).lang = lang;
+
+        // KOD REJIMI (QR-2): kodni tekshirib, mahsulotni aniqlaymiz
+        const fromCode = !!enterState.fromCode;
+        if (fromCode && enterState.code) {
+            const codeRec = await this.codesService.validate(enterState.code);
+            if (!codeRec) {
+                await ctx.reply(t(lang, 'code_invalid'), mainMenuKeyboard(lang));
+                await ctx.scene.leave();
+                return;
+            }
+            productId = codeRec.productId;
+            (ctx.wizard.state as ReviewState).codeId = codeRec.id;
+            (ctx.wizard.state as ReviewState).fromCode = true;
+            (ctx.wizard.state as ReviewState).quantity = 1; // kod = 1 dona
+        }
 
         if (!productId) {
             await ctx.reply(t(lang, 'product_not_selected'), mainMenuKeyboard(lang));
@@ -91,6 +111,13 @@ export class ReviewScene {
             await ctx.reply(
                 t(lang, 'product_info_plain', { title: product.title, bonus: product.bonus }),
             );
+        }
+
+        // KOD REJIMIDA: tasdiqlash/miqdorni o'tkazib, to'g'ridan chek yuklashga
+        if (fromCode) {
+            await ctx.reply(t(lang, 'send_proof'), cancelOnlyKeyboard(lang));
+            ctx.wizard.selectStep(3); // WizardStep(4) = chek rasmi (index 3)
+            return;
         }
 
         await ctx.reply(t(lang, 'press_confirm'), reviewConfirmKeyboard(lang));
@@ -213,6 +240,12 @@ export class ReviewScene {
             bonus: totalBonus,
             proofImage,
         });
+
+        // KOD REJIMI: kodni ishlatilgan deb belgilaymiz (qayta ishlatilmasin)
+        const codeId = (ctx.wizard.state as ReviewState).codeId;
+        if (codeId) {
+            await this.codesService.markUsed(codeId, user.id);
+        }
 
         const channelNote =
             product.requireChannel && (product.telegramChannel || product.instagram)

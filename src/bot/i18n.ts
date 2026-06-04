@@ -20,7 +20,7 @@ type Key =
     | 'btn_select_product' | 'page' | 'gift_caption' | 'btn_exchange'
     | 'no_orders' | 'orders_header' | 'deleted_product'
     | 'btn_back' | 'btn_next'
-    | 'gift_not_found' | 'not_enough_bonus' | 'gift_success' | 'gift_requested'
+    | 'gift_not_found' | 'not_enough_bonus' | 'gift_success' | 'gift_requested' | 'code_invalid'
     | 'menu_review' | 'menu_gifts' | 'btn_confirm' | 'btn_cancel'
     | 'ask_phone' | 'btn_send_phone' | 'invalid_phone' | 'welcome_existing'
     | 'ask_first_name' | 'invalid_first_name'
@@ -67,6 +67,7 @@ const messages: Record<Lang, Record<Key, string>> = {
             '✅ Tabriklaymiz! Siz "{title}" sovg\'asini almashtirib oldingiz.\n💸 -{price} bonus\n💰 Qolgan bonus: {bonus}',
         gift_requested:
             '📩 So\'rovingiz qabul qilindi!\n🎁 "{title}" sovg\'asi uchun {price} bonus ushlab turildi.\n⏳ Admin tasdiqlagach sovg\'a beriladi (rad etilsa bonus qaytariladi).\n💰 Qolgan bonus: {bonus}',
+        code_invalid: "❌ Kod yaroqsiz, allaqachon ishlatilgan yoki muddati o'tgan.",
         menu_review: '🧾 Xaridni tasdiqlash',
         menu_gifts: "🎁 Sovg'alar",
         btn_confirm: '✅ Tasdiqlash',
@@ -145,6 +146,7 @@ const messages: Record<Lang, Record<Key, string>> = {
             '✅ Поздравляем! Вы обменяли подарок "{title}".\n💸 -{price} бонусов\n💰 Остаток бонусов: {bonus}',
         gift_requested:
             '📩 Ваш запрос принят!\n🎁 За подарок "{title}" зарезервировано {price} бонусов.\n⏳ Подарок будет выдан после подтверждения админом (при отказе бонусы вернутся).\n💰 Остаток бонусов: {bonus}',
+        code_invalid: '❌ Код недействителен, уже использован или истёк срок.',
         menu_review: '🧾 Подтвердить покупку',
         menu_gifts: '🎁 Подарки',
         btn_confirm: '✅ Подтвердить',
@@ -223,6 +225,7 @@ const messages: Record<Lang, Record<Key, string>> = {
             '✅ Congratulations! You exchanged the gift "{title}".\n💸 -{price} bonus\n💰 Remaining bonus: {bonus}',
         gift_requested:
             '📩 Your request has been received!\n🎁 {price} bonus reserved for the gift "{title}".\n⏳ The gift will be issued after admin approval (bonus refunded if rejected).\n💰 Remaining bonus: {bonus}',
+        code_invalid: '❌ Code is invalid, already used, or expired.',
         menu_review: '🧾 Confirm purchase',
         menu_gifts: '🎁 Gifts',
         btn_confirm: '✅ Confirm',

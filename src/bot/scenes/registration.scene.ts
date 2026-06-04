@@ -5,6 +5,7 @@ import { BotService, CreateUserPayload } from '../bot.service';
 import { RegionsService } from '../regions.service';
 import { mainMenuKeyboard } from '../keyboards';
 import { Lang, normalizeLang, t } from '../i18n';
+import { REVIEW_SCENE } from './review.scene';
 
 export const REGISTRATION_SCENE = 'REGISTRATION_SCENE';
 
@@ -219,6 +220,13 @@ export class RegistrationScene {
             }),
             mainMenuKeyboard(lang),
         );
+
+        // QR-2 orqali kelgan bo'lsa — ro'yxatdan keyin to'g'ridan chek yuklashga
+        const pendingCode = (ctx.session as any)?.pendingCode;
         await ctx.scene.leave();
+        if (pendingCode) {
+            delete (ctx.session as any).pendingCode;
+            await ctx.scene.enter(REVIEW_SCENE, { code: String(pendingCode), fromCode: true, lang });
+        }
     }
 }

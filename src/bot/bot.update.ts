@@ -38,7 +38,30 @@ export class BotUpdate {
 
     @Start()
     async onStart(@TelegrafCtx() ctx: BotCtx) {
-        // Har doim avval til tanlash ko'rsatiladi
+        // Deep-link payload: /start KOD  (QR-2 dan)
+        const msg: any = (ctx as any).message;
+        const payload =
+            typeof msg?.text === 'string'
+                ? msg.text.replace(/^\/start(@\w+)?\s*/i, '').trim()
+                : '';
+
+        if (payload && /^[A-Za-z0-9]{5,12}$/.test(payload)) {
+            const telegramId = ctx.from?.id;
+            const existing = telegramId ? await this.botService.findByTelegramId(telegramId) : null;
+            if (existing) {
+                // Ro'yxatdan o'tgan — to'g'ridan chek yuklashga (review)
+                await ctx.scene.enter(REVIEW_SCENE, {
+                    code: payload.toUpperCase(),
+                    fromCode: true,
+                    lang: normalizeLang(existing.language),
+                });
+                return;
+            }
+            // Ro'yxatdan o'tmagan — kodni eslab qolamiz, avval ro'yxat
+            (ctx.session as any).pendingCode = payload.toUpperCase();
+        }
+
+        // Til tanlash
         await ctx.reply(t('uz', 'choose_language'), languageKeyboard);
     }
 

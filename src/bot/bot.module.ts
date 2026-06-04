@@ -8,15 +8,17 @@ import { RegistrationScene } from './scenes/registration.scene';
 import { ReviewScene } from './scenes/review.scene';
 import { ImageUploadService } from '../common/image-upload.service';
 import { BonusResetService } from './bonus-reset.service';
+import { CodesService } from './codes.service';
 import { User } from '../common/entities/user.entity';
 import { Product } from '../common/entities/product.entity';
 import { Gift } from '../common/entities/gift.entity';
 import { Purchase } from '../common/entities/purchase.entity';
 import { GiftPurchase } from '../common/entities/gift-purchase.entity';
+import { Code } from '../common/entities/code.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, Product, Gift, Purchase, GiftPurchase]),
+        TypeOrmModule.forFeature([User, Product, Gift, Purchase, GiftPurchase, Code]),
     ],
     providers: [
         BotService,
@@ -27,6 +29,7 @@ import { GiftPurchase } from '../common/entities/gift-purchase.entity';
         ReviewScene,
         ImageUploadService,
         BonusResetService,
+        CodesService,
     ],
 })
 export class BotModule {}
