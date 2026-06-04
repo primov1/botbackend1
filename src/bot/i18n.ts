@@ -23,6 +23,8 @@ type Key =
     | 'gift_not_found' | 'not_enough_bonus' | 'gift_success' | 'gift_requested' | 'code_invalid'
     | 'menu_code' | 'code_enter_prompt' | 'code_redeemed' | 'code_redeemed_nobonus'
     | 'menu_review' | 'menu_gifts' | 'btn_confirm' | 'btn_cancel'
+    | 'menu_profile' | 'profile_header' | 'profile_gift_reachable' | 'profile_gift_need'
+    | 'profile_no_gifts' | 'profile_all_reachable'
     | 'ask_phone' | 'btn_send_phone' | 'invalid_phone' | 'welcome_existing'
     | 'ask_first_name' | 'invalid_first_name'
     | 'ask_last_name' | 'invalid_last_name'
@@ -76,6 +78,12 @@ const messages: Record<Lang, Record<Key, string>> = {
         code_redeemed_nobonus: '✅ Kod tasdiqlandi! Rahmat.',
         menu_review: '🧾 Xaridni tasdiqlash',
         menu_gifts: "🎁 Sovg'alar",
+        menu_profile: '👤 Mening hisobim',
+        profile_header: '👤 {name}\n💰 Bonusingiz: {bonus} ball\n\n🎁 Sovg\'alar:',
+        profile_gift_reachable: '✅ {title} — {price} ball (yetadi)',
+        profile_gift_need: '🔒 {title} — {price} ball (yana {need} kerak)',
+        profile_no_gifts: "🎁 Hozircha sovg'alar mavjud emas.",
+        profile_all_reachable: '🎉 Barcha sovg\'alarga yetadi!',
         btn_confirm: '✅ Tasdiqlash',
         btn_cancel: '❌ Bekor qilish',
         ask_phone: "Assalomu alaykum! Ro'yxatdan o'tish uchun telefon raqamingizni yuboring 👇",
@@ -160,6 +168,12 @@ const messages: Record<Lang, Record<Key, string>> = {
         code_redeemed_nobonus: '✅ Код подтверждён! Спасибо.',
         menu_review: '🧾 Подтвердить покупку',
         menu_gifts: '🎁 Подарки',
+        menu_profile: '👤 Мой профиль',
+        profile_header: '👤 {name}\n💰 Ваши бонусы: {bonus} баллов\n\n🎁 Подарки:',
+        profile_gift_reachable: '✅ {title} — {price} баллов (хватает)',
+        profile_gift_need: '🔒 {title} — {price} баллов (нужно ещё {need})',
+        profile_no_gifts: '🎁 Пока нет доступных подарков.',
+        profile_all_reachable: '🎉 Хватает на все подарки!',
         btn_confirm: '✅ Подтвердить',
         btn_cancel: '❌ Отмена',
         ask_phone: 'Здравствуйте! Для регистрации отправьте свой номер телефона 👇',
@@ -244,6 +258,12 @@ const messages: Record<Lang, Record<Key, string>> = {
         code_redeemed_nobonus: '✅ Code confirmed! Thank you.',
         menu_review: '🧾 Confirm purchase',
         menu_gifts: '🎁 Gifts',
+        menu_profile: '👤 My profile',
+        profile_header: '👤 {name}\n💰 Your bonus: {bonus} points\n\n🎁 Gifts:',
+        profile_gift_reachable: '✅ {title} — {price} points (enough)',
+        profile_gift_need: '🔒 {title} — {price} points ({need} more needed)',
+        profile_no_gifts: '🎁 No gifts available yet.',
+        profile_all_reachable: '🎉 You can afford all gifts!',
         btn_confirm: '✅ Confirm',
         btn_cancel: '❌ Cancel',
         ask_phone: 'Hello! To register, please send your phone number 👇',

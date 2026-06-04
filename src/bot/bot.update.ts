@@ -4,7 +4,7 @@ import { Markup, Scenes } from 'telegraf';
 import { BotService } from './bot.service';
 import { BotCatalogService } from './bot-catalog.service';
 import {
-    MENU_GIFTS_ALL, MENU_REVIEW_ALL, MENU_CODE_ALL,
+    MENU_GIFTS_ALL, MENU_REVIEW_ALL, MENU_CODE_ALL, MENU_PROFILE_ALL,
     languageKeyboard, mainMenuKeyboard,
 } from './keyboards';
 import { Lang, normalizeLang, t } from './i18n';
@@ -141,6 +141,46 @@ export class BotUpdate {
     @Hears(MENU_CODE_ALL)
     async onCodeMenu(@TelegrafCtx() ctx: BotCtx) {
         await ctx.scene.enter(CODE_SCENE);
+    }
+
+    @Hears(MENU_PROFILE_ALL)
+    @Command('profile')
+    async onProfile(@TelegrafCtx() ctx: BotCtx) {
+        const telegramId = ctx.from?.id;
+        if (!telegramId) return;
+
+        const user = await this.botService.findByTelegramId(telegramId);
+        const lang = normalizeLang(user?.language);
+        if (!user) {
+            await ctx.reply(t(lang, 'register_first'));
+            return;
+        }
+
+        const gifts = await this.catalogService.findAllGiftsByPrice();
+        const header = t(lang, 'profile_header', {
+            name: `${user.firstName} ${user.lastName}`.trim(),
+            bonus: user.bonus,
+        });
+
+        if (gifts.length === 0) {
+            await ctx.reply(`${header}\n\n${t(lang, 'profile_no_gifts')}`, mainMenuKeyboard(lang));
+            return;
+        }
+
+        const lines = gifts.map((g) =>
+            user.bonus >= g.price
+                ? t(lang, 'profile_gift_reachable', { title: g.title, price: g.price })
+                : t(lang, 'profile_gift_need', {
+                      title: g.title,
+                      price: g.price,
+                      need: g.price - user.bonus,
+                  }),
+        );
+
+        const allReachable = gifts.every((g) => user.bonus >= g.price);
+        const footer = allReachable ? `\n\n${t(lang, 'profile_all_reachable')}` : '';
+
+        await ctx.reply(`${header}\n${lines.join('\n')}${footer}`, mainMenuKeyboard(lang));
     }
 
     @Hears(MENU_REVIEW_ALL)

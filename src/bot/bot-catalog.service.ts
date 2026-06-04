@@ -46,4 +46,9 @@ export class BotCatalogService {
         if (!id || isNaN(id)) return null;
         return this.giftRepo.findOne({ where: { id } });
     }
+
+    /** Profil uchun — barcha sovg'alar, narxi bo'yicha o'sish tartibida. */
+    findAllGiftsByPrice() {
+        return this.giftRepo.find({ order: { price: 'ASC' } });
+    }
 }
