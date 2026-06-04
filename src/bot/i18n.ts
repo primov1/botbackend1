@@ -103,7 +103,7 @@ const messages: Record<Lang, Record<Key, string>> = {
         invalid_district: "Iltimos, ro'yxatdan tumanni tanlang:",
         register_error: "Xatolik yuz berdi. /start buyrug'i bilan qaytadan urinib ko'ring.",
         register_success:
-            "✅ Tabriklaymiz, {first} {last}!\nSiz muvaffaqiyatli ro'yxatdan o'tdingiz.\n📍 Manzil: {region}, {district}\n💰 Bonus hisobingiz: {bonus}",
+            "✅ Tabriklaymiz, {first} {last}!\nSiz muvaffaqiyatli ro'yxatdan o'tdingiz.\n📍 Manzil: {region}, {district}\n💰 Bonus hisobingiz: {bonus}\n\n🧾 Bonus yig'ish uchun xaridingizni tasdiqlang!",
         register_canceled: "Ro'yxatdan o'tish bekor qilindi. Qaytadan boshlash uchun /start bosing.",
         product_not_selected: 'Mahsulot tanlanmadi.',
         product_not_found: 'Mahsulot topilmadi.',
@@ -193,7 +193,7 @@ const messages: Record<Lang, Record<Key, string>> = {
         invalid_district: 'Пожалуйста, выберите район из списка:',
         register_error: 'Произошла ошибка. Попробуйте снова с помощью команды /start.',
         register_success:
-            '✅ Поздравляем, {first} {last}!\nВы успешно зарегистрировались.\n📍 Адрес: {region}, {district}\n💰 Ваш бонусный счёт: {bonus}',
+            '✅ Поздравляем, {first} {last}!\nВы успешно зарегистрировались.\n📍 Адрес: {region}, {district}\n💰 Ваш бонусный счёт: {bonus}\n\n🧾 Подтвердите покупку, чтобы начать копить бонусы!',
         register_canceled: 'Регистрация отменена. Нажмите /start, чтобы начать заново.',
         product_not_selected: 'Товар не выбран.',
         product_not_found: 'Товар не найден.',
@@ -283,7 +283,7 @@ const messages: Record<Lang, Record<Key, string>> = {
         invalid_district: 'Please choose a district from the list:',
         register_error: 'An error occurred. Please try again with the /start command.',
         register_success:
-            '✅ Congratulations, {first} {last}!\nYou have successfully registered.\n📍 Address: {region}, {district}\n💰 Your bonus balance: {bonus}',
+            '✅ Congratulations, {first} {last}!\nYou have successfully registered.\n📍 Address: {region}, {district}\n💰 Your bonus balance: {bonus}\n\n🧾 Confirm your purchase to start earning bonuses!',
         register_canceled: 'Registration cancelled. Press /start to begin again.',
         product_not_selected: 'No product selected.',
         product_not_found: 'Product not found.',
