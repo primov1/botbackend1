@@ -103,7 +103,7 @@ const messages: Record<Lang, Record<Key, string>> = {
         invalid_district: "Iltimos, ro'yxatdan tumanni tanlang:",
         register_error: "Xatolik yuz berdi. /start buyrug'i bilan qaytadan urinib ko'ring.",
         register_success:
-            "✅ Tabriklaymiz, {first} {last}!\nSiz muvaffaqiyatli ro'yxatdan o'tdingiz.\n📍 Manzil: {region}, {district}\n💰 Bonus hisobingiz: {bonus}\n\n🧾 Bonus yig'ish uchun xaridingizni tasdiqlang!",
+            "✅ Tabriklaymiz, {first} {last}!\nSiz muvaffaqiyatli ro'yxatdan o'tdingiz.\n📍 Manzil: {region}, {district}\n💰 Bonus hisobingiz: {bonus}\n\n🛍 Sotib olgan mahsulotingizni tanlang va tasdiqlab bonusga ball ega bo'ling!",
         register_canceled: "Ro'yxatdan o'tish bekor qilindi. Qaytadan boshlash uchun /start bosing.",
         product_not_selected: 'Mahsulot tanlanmadi.',
         product_not_found: 'Mahsulot topilmadi.',
