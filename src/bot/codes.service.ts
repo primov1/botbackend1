@@ -3,6 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Code } from '../common/entities/code.entity';
 
+/** Kodni ishlatishga urinish natijasi. */
+export type ConsumeResult =
+    | { status: 'ok'; rec: Code }
+    | { status: 'used' }
+    | { status: 'expired' }
+    | { status: 'not_found' };
+
 /**
  * Bot tomonidan kodlarni tekshirish/belgilash. Jadval admin panel (botfront)
  * tomonidan yaratiladi — bu yerda faqat o'qiymiz va ishlatilgan deb belgilaymiz.
@@ -32,6 +39,28 @@ export class CodesService {
         return Promise.all(
             codes.map(async (code) => ({ code, rec: await this.validate(code) })),
         );
+    }
+
+    /**
+     * Kodni ATOMIK tarzda ishlatilgan deb belgilaydi va holatini qaytaradi.
+     * Bir marta ishlatilgach qayta ishlatib bo'lmaydi: keyingi safar { status: 'used' }.
+     */
+    async consume(code: string, userId: number): Promise<ConsumeResult> {
+        const c = (code ?? '').trim().toUpperCase();
+        if (!c) return { status: 'not_found' };
+        try {
+            const found = await this.codeRepo.findOne({ where: { code: c } });
+            if (!found) return { status: 'not_found' };
+            if (found.isUsed) return { status: 'used' };
+            if (new Date(found.expiresAt).getTime() < Date.now()) return { status: 'expired' };
+
+            // Atomik belgilash — poyga holatida faqat bittasi muvaffaqiyatli bo'ladi
+            const marked = await this.markUsed(found.id, userId);
+            if (!marked) return { status: 'used' };
+            return { status: 'ok', rec: found };
+        } catch {
+            return { status: 'not_found' };
+        }
     }
 
     /** Ishlatilgan deb belgilash — atomik (faqat ishlatilmagan bo'lsa). */

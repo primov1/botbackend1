@@ -38,7 +38,9 @@ type Key =
     | 'review_accepted' | 'channel_note'
     | 'ask_quantity' | 'invalid_quantity'
     | 'ask_codes' | 'ask_codes_multi' | 'invalid_codes'
-    | 'codes_preview' | 'code_not_found_list'
+    | 'codes_preview' | 'code_not_found_list' | 'code_duplicate'
+    | 'code_already_used' | 'code_expired'
+    | 'code_enter_prompt' | 'code_redeemed' | 'code_redeemed_nobonus'
     | 'ask_code_n';
 
 const messages: Record<Lang, Record<Key, string>> = {
@@ -123,6 +125,12 @@ const messages: Record<Lang, Record<Key, string>> = {
         invalid_codes: "❌ Kodlar noto'g'ri. Har biri aynan 7 ta belgi bo'lishi kerak. Qayta kiriting:",
         codes_preview: "✅ Kodlar topildi!\n\n{lines}\n\n💰 Jami bonus: <b>+{total} ball</b>\n<i>(Admin chekni tasdiqlangach hisobingizga tushadi)</i>",
         code_not_found_list: "❌ Quyidagi kodlar topilmadi yoki allaqachon ishlatilgan:\n{list}\n\nQayta tekshirib kiriting:",
+        code_duplicate: "❌ Bu kodni allaqachon kiritdingiz. Boshqa kod kiriting:",
+        code_already_used: "❌ Bu kod allaqachon ishlatilgan.",
+        code_expired: "❌ Bu kodning muddati o'tgan.",
+        code_enter_prompt: "🏷 Mahsulot kodini kiriting:",
+        code_redeemed: "✅ Kod qabul qilindi!\n📦 {title}\n💰 +{points} ball qo'shildi.\n💰 Jami bonus: {bonus}",
+        code_redeemed_nobonus: "✅ Kod qabul qilindi!",
         send_proof: 'Bonus hisoblash uchun chek rasmini yuboring 📸',
         please_send_photo: 'Iltimos, chek RASMINI yuboring (matn yoki fayl emas).',
         already_pending:
@@ -215,6 +223,12 @@ const messages: Record<Lang, Record<Key, string>> = {
         invalid_codes: '❌ Коды неверны. Каждый должен быть ровно 7 символов. Попробуйте снова:',
         codes_preview: '✅ Коды найдены!\n\n{lines}\n\n💰 Итого бонус: <b>+{total} баллов</b>\n<i>(Зачислится после подтверждения чека админом)</i>',
         code_not_found_list: '❌ Следующие коды не найдены или уже использованы:\n{list}\n\nПроверьте и введите снова:',
+        code_duplicate: '❌ Этот код уже введён. Введите другой код:',
+        code_already_used: '❌ Этот код уже использован.',
+        code_expired: '❌ Срок действия этого кода истёк.',
+        code_enter_prompt: '🏷 Введите код товара:',
+        code_redeemed: '✅ Код принят!\n📦 {title}\n💰 +{points} баллов начислено.\n💰 Итого бонус: {bonus}',
+        code_redeemed_nobonus: '✅ Код принят!',
         send_proof: 'Для начисления бонуса отправьте фото чека 📸',
         please_send_photo: 'Пожалуйста, отправьте именно ФОТО чека (не текст и не файл).',
         already_pending: '⏳ Заявка по этому товару уже отправлена. Ожидайте подтверждения админа.',
@@ -306,6 +320,12 @@ const messages: Record<Lang, Record<Key, string>> = {
         invalid_codes: '❌ Invalid codes. Each must be exactly 7 characters. Please try again:',
         codes_preview: '✅ Codes found!\n\n{lines}\n\n💰 Total bonus: <b>+{total} points</b>\n<i>(Will be credited after admin approves the receipt)</i>',
         code_not_found_list: '❌ The following codes were not found or already used:\n{list}\n\nPlease check and try again:',
+        code_duplicate: '❌ This code has already been entered. Please enter a different code:',
+        code_already_used: '❌ This code has already been used.',
+        code_expired: '❌ This code has expired.',
+        code_enter_prompt: '🏷 Enter the product code:',
+        code_redeemed: '✅ Code accepted!\n📦 {title}\n💰 +{points} points credited.\n💰 Total bonus: {bonus}',
+        code_redeemed_nobonus: '✅ Code accepted!',
         send_proof: 'To calculate the bonus, send a photo of the receipt 📸',
         please_send_photo: 'Please send a PHOTO of the receipt (not text or a file).',
         already_pending: '⏳ A review for this product has already been submitted. Wait for admin approval.',

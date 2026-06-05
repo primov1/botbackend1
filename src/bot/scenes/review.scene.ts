@@ -19,11 +19,13 @@ interface ReviewState {
     quantity?: number;
     productCodes?: string[];
     codeIds?: number[];
+    codePoints?: number[];
     codesBonus?: number;
     lang?: Lang;
     fromCode?: boolean;
     code?: string;
     codeId?: number;
+    userId?: number;
 }
 
 type WizardCtx = Scenes.WizardContext;
@@ -53,18 +55,34 @@ export class ReviewScene {
         const user = await this.botService.findByTelegramId(ctx.from?.id ?? 0);
         const lang = normalizeLang(user?.language);
         (ctx.wizard.state as ReviewState).lang = lang;
+        (ctx.wizard.state as ReviewState).userId = user?.id;
 
-        // KOD REJIMI (QR-2): kodni tekshirib, mahsulotni aniqlaymiz
+        // KOD REJIMI (QR-2): kodni tekshirib, DARHOL ishlatilgan deb belgilaymiz
         const fromCode = !!enterState.fromCode;
         if (fromCode && enterState.code) {
-            const codeRec = await this.codesService.validate(enterState.code);
-            if (!codeRec) {
+            if (!user) {
+                await ctx.reply(t(lang, 'register_first'), mainMenuKeyboard(lang));
+                await ctx.scene.leave();
+                return;
+            }
+            const result = await this.codesService.consume(enterState.code, user.id);
+            if (result.status === 'used') {
+                await ctx.reply(t(lang, 'code_already_used'), mainMenuKeyboard(lang));
+                await ctx.scene.leave();
+                return;
+            }
+            if (result.status === 'expired') {
+                await ctx.reply(t(lang, 'code_expired'), mainMenuKeyboard(lang));
+                await ctx.scene.leave();
+                return;
+            }
+            if (result.status !== 'ok') {
                 await ctx.reply(t(lang, 'code_invalid'), mainMenuKeyboard(lang));
                 await ctx.scene.leave();
                 return;
             }
-            productId = codeRec.productId;
-            (ctx.wizard.state as ReviewState).codeId = codeRec.id;
+            productId = result.rec.productId;
+            (ctx.wizard.state as ReviewState).codeId = result.rec.id;
             (ctx.wizard.state as ReviewState).fromCode = true;
             (ctx.wizard.state as ReviewState).quantity = 1; // kod = 1 dona
         }
@@ -196,38 +214,65 @@ export class ReviewScene {
         const qty = state.quantity ?? 1;
         const collected = state.productCodes ?? [];
         const collectedIds = state.codeIds ?? [];
-        const collectedBonus = state.codesBonus ?? 0;
+        const collectedPoints = state.codePoints ?? [];
+
+        // Shu slot uchun qayta so'rash matni (kod hali qabul qilinmadi)
+        const nextPrompt = () => {
+            const n = collected.length + 1;
+            return qty === 1
+                ? t(lang, 'ask_codes')
+                : t(lang, 'ask_code_n', { n, total: qty });
+        };
 
         // Format tekshir: aynan 7 belgi
         if (text.length !== 7) {
-            const n = collected.length + 1;
-            const prompt = qty === 1
-                ? t(lang, 'ask_codes')
-                : t(lang, 'ask_code_n', { n, total: qty });
-            await ctx.reply(`${t(lang, 'invalid_codes')}\n\n${prompt}`, cancelOnlyKeyboard(lang));
+            await ctx.reply(`${t(lang, 'invalid_codes')}\n\n${nextPrompt()}`, cancelOnlyKeyboard(lang));
             return;
         }
 
-        // DB dan tekshirish
-        const rec = await this.codesService.validate(text);
-        if (!rec) {
-            const n = collected.length + 1;
-            const prompt = qty === 1
-                ? t(lang, 'ask_codes')
-                : t(lang, 'ask_code_n', { n, total: qty });
+        // Shu sessiyada allaqachon kiritilgan bo'lsa
+        if (collected.includes(text)) {
+            await ctx.reply(`${t(lang, 'code_duplicate')}\n\n${nextPrompt()}`, cancelOnlyKeyboard(lang));
+            return;
+        }
+
+        // Foydalanuvchini aniqlaymiz (kodni ishlatilgan deb belgilash uchun kerak)
+        const userId =
+            state.userId ?? (await this.botService.findByTelegramId(ctx.from?.id ?? 0))?.id;
+        if (!userId) {
+            await ctx.reply(t(lang, 'register_first'), mainMenuKeyboard(lang));
+            await ctx.scene.leave();
+            return;
+        }
+        state.userId = userId;
+
+        // DB dan tekshirib, DARHOL ishlatilgan deb belgilaymiz (bir martalik)
+        const result = await this.codesService.consume(text, userId);
+        if (result.status === 'used') {
+            await ctx.reply(`${t(lang, 'code_already_used')}\n\n${nextPrompt()}`, cancelOnlyKeyboard(lang));
+            return;
+        }
+        if (result.status === 'expired') {
+            await ctx.reply(`${t(lang, 'code_expired')}\n\n${nextPrompt()}`, cancelOnlyKeyboard(lang));
+            return;
+        }
+        if (result.status !== 'ok') {
             await ctx.reply(
-                t(lang, 'code_not_found_list', { list: `• ${text}` }) + `\n\n${prompt}`,
+                `${t(lang, 'code_not_found_list', { list: `• ${text}` })}\n\n${nextPrompt()}`,
                 cancelOnlyKeyboard(lang),
             );
             return;
         }
 
-        // Kodni saqlaymiz
+        // Kodni saqlaymiz (allaqachon ishlatilgan deb belgilandi)
+        const rec = result.rec;
         collected.push(text);
         collectedIds.push(rec.id);
+        collectedPoints.push(rec.points ?? 0);
         state.productCodes = collected;
         state.codeIds = collectedIds;
-        state.codesBonus = collectedBonus + (rec.points ?? 0);
+        state.codePoints = collectedPoints;
+        state.codesBonus = collectedPoints.reduce((s, p) => s + p, 0);
 
         if (collected.length < qty) {
             // Keyingi kodni so'raymiz
@@ -240,14 +285,12 @@ export class ReviewScene {
             return;
         }
 
-        // Hammasi to'plandi — to'g'ri ballar uchun DB dan qayta tekshir
-        const allRecs = await this.codesService.validateMultiple(collected);
-        const validRecs = allRecs.map((r) => r.rec!);
-        const totalBonus = validRecs.reduce((s, r) => s + (r?.points ?? 0), 0);
+        // Hammasi to'plandi — kodlar allaqachon belgilangan, saqlangan ballardan foydalanamiz
+        const totalBonus = collectedPoints.reduce((s, p) => s + p, 0);
         state.codesBonus = totalBonus;
 
         const lines = collected
-            .map((code, i) => `${i + 1}. ${code} — <b>+${validRecs[i]?.points ?? 0} ball</b>`)
+            .map((code, i) => `${i + 1}. ${code} — <b>+${collectedPoints[i] ?? 0} ball</b>`)
             .join('\n');
 
         await ctx.reply(
@@ -339,11 +382,8 @@ export class ReviewScene {
             reviewNote,
         });
 
-        // KOD REJIMI: kodni ishlatilgan deb belgilaymiz (qayta ishlatilmasin)
-        const codeId = (ctx.wizard.state as ReviewState).codeId;
-        if (codeId) {
-            await this.codesService.markUsed(codeId, user.id);
-        }
+        // Eslatma: kodlar kiritilgan paytda DARHOL ishlatilgan deb belgilangan
+        // (CodesService.consume), shuning uchun bu yerda qaytadan belgilash shart emas.
 
         const channelNote =
             product.requireChannel && (product.telegramChannel || product.instagram)

@@ -45,8 +45,9 @@ export class BotUpdate {
                 ? msg.text.replace(/^\/start(@\w+)?\s*/i, '').trim()
                 : '';
 
+        const telegramId = ctx.from?.id;
+
         if (payload && /^[A-Za-z0-9]{5,12}$/.test(payload)) {
-            const telegramId = ctx.from?.id;
             const existing = telegramId ? await this.botService.findByTelegramId(telegramId) : null;
             if (existing) {
                 // Ro'yxatdan o'tgan — chek tasdiqlash jarayoniga yo'naltiramiz
@@ -55,9 +56,20 @@ export class BotUpdate {
             }
             // Ro'yxatdan o'tmagan — kodni eslab qolamiz, avval ro'yxat
             (ctx.session as any).pendingCode = payload.toUpperCase();
+        } else if (telegramId) {
+            // Oddiy /start — ro'yxatdan o'tgan bo'lsa yangi klaviaturani yuborib qaytamiz
+            const existing = await this.botService.findByTelegramId(telegramId);
+            if (existing) {
+                const lang = normalizeLang(existing.language);
+                await ctx.reply(
+                    t(lang, 'welcome_back', { name: existing.firstName, bonus: existing.bonus }),
+                    mainMenuKeyboard(lang),
+                );
+                return;
+            }
         }
 
-        // Til tanlash
+        // Til tanlash (faqat yangi userlar)
         await ctx.reply(t('uz', 'choose_language'), languageKeyboard);
     }
 
