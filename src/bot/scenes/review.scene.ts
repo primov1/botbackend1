@@ -202,9 +202,10 @@ export class ReviewScene {
     async waitForCodes(@Ctx() ctx: WizardCtx) {
         const lang = this.lang(ctx);
         const message: any = (ctx as any).message;
-        const text = typeof message?.text === 'string' ? message.text.trim().toUpperCase() : '';
+        const raw = typeof message?.text === 'string' ? message.text.trim() : '';
+        const text = raw.toUpperCase();
 
-        if (isReviewCancel(text)) {
+        if (isReviewCancel(raw)) {
             await ctx.reply(t(lang, 'canceled'), mainMenuKeyboard(lang));
             await ctx.scene.leave();
             return;
