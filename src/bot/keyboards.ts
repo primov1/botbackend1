@@ -12,7 +12,6 @@ export const languageKeyboard: Markup.Markup<InlineKeyboardMarkup> = Markup.inli
 // ===== Asosiy menyu (tilga qarab) =====
 export function mainMenuKeyboard(lang: Lang): Markup.Markup<ReplyKeyboardMarkup> {
     return Markup.keyboard([
-        [t(lang, 'menu_code')],
         [t(lang, 'menu_review'), t(lang, 'menu_gifts')],
         [t(lang, 'menu_profile')],
     ]).resize();
@@ -31,7 +30,6 @@ export function cancelOnlyKeyboard(lang: Lang): Markup.Markup<ReplyKeyboardMarku
 // ===== @Hears / matn solishtirish uchun (BARCHA tillarda) =====
 export const MENU_REVIEW_ALL = LANGS.map((l) => t(l, 'menu_review'));
 export const MENU_GIFTS_ALL = LANGS.map((l) => t(l, 'menu_gifts'));
-export const MENU_CODE_ALL = LANGS.map((l) => t(l, 'menu_code'));
 export const MENU_PROFILE_ALL = LANGS.map((l) => t(l, 'menu_profile'));
 
 const CONFIRM_ALL = LANGS.map((l) => t(l, 'btn_confirm'));

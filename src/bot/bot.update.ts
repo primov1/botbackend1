@@ -4,13 +4,12 @@ import { Markup, Scenes } from 'telegraf';
 import { BotService } from './bot.service';
 import { BotCatalogService } from './bot-catalog.service';
 import {
-    MENU_GIFTS_ALL, MENU_REVIEW_ALL, MENU_CODE_ALL, MENU_PROFILE_ALL,
+    MENU_GIFTS_ALL, MENU_REVIEW_ALL, MENU_PROFILE_ALL,
     languageKeyboard, mainMenuKeyboard,
 } from './keyboards';
 import { Lang, normalizeLang, t } from './i18n';
 import { REGISTRATION_SCENE } from './scenes/registration.scene';
 import { REVIEW_SCENE } from './scenes/review.scene';
-import { CODE_SCENE, CodeScene } from './scenes/code.scene';
 
 interface CatalogSession {
     productMsgIds?: number[];
@@ -50,10 +49,8 @@ export class BotUpdate {
             const telegramId = ctx.from?.id;
             const existing = telegramId ? await this.botService.findByTelegramId(telegramId) : null;
             if (existing) {
-                // Ro'yxatdan o'tgan — kodni AVTOMATIK tasdiqlaymiz (bonus darhol)
-                const lang = normalizeLang(existing.language);
-                const result = await this.botService.redeemCode(telegramId!, payload);
-                await CodeScene.replyResult(ctx, lang, result);
+                // Ro'yxatdan o'tgan — chek tasdiqlash jarayoniga yo'naltiramiz
+                await ctx.scene.enter(REVIEW_SCENE, { fromCode: true, code: payload.toUpperCase() });
                 return;
             }
             // Ro'yxatdan o'tmagan — kodni eslab qolamiz, avval ro'yxat
@@ -136,11 +133,6 @@ export class BotUpdate {
             t(lang, 'my_gifts_header', { count: gifts.length, list: lines.join('\n') }),
             mainMenuKeyboard(lang),
         );
-    }
-
-    @Hears(MENU_CODE_ALL)
-    async onCodeMenu(@TelegrafCtx() ctx: BotCtx) {
-        await ctx.scene.enter(CODE_SCENE);
     }
 
     @Hears(MENU_PROFILE_ALL)

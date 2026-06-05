@@ -6,7 +6,6 @@ import { BotCatalogService } from './bot-catalog.service';
 import { RegionsService } from './regions.service';
 import { RegistrationScene } from './scenes/registration.scene';
 import { ReviewScene } from './scenes/review.scene';
-import { CodeScene } from './scenes/code.scene';
 import { ImageUploadService } from '../common/image-upload.service';
 import { BonusResetService } from './bonus-reset.service';
 import { CodesService } from './codes.service';
@@ -28,7 +27,6 @@ import { Code } from '../common/entities/code.entity';
         BotUpdate,
         RegistrationScene,
         ReviewScene,
-        CodeScene,
         ImageUploadService,
         BonusResetService,
         CodesService,

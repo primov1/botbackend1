@@ -53,6 +53,12 @@ export class SchemaBootstrapService implements OnModuleInit {
             'purchases.quantity',
             `ALTER TABLE "purchases" ADD COLUMN IF NOT EXISTS "quantity" int NOT NULL DEFAULT 1`,
         );
+
+        // Ishlatilmagan reviewComment ustunini olib tashlaymiz
+        await this.run(
+            'purchases.drop_reviewComment',
+            `ALTER TABLE "purchases" DROP COLUMN IF EXISTS "reviewComment"`,
+        );
     }
 
     private async run(label: string, sql: string): Promise<void> {

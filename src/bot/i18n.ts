@@ -21,7 +21,6 @@ type Key =
     | 'no_orders' | 'orders_header' | 'deleted_product'
     | 'btn_back' | 'btn_next'
     | 'gift_not_found' | 'not_enough_bonus' | 'gift_success' | 'gift_requested' | 'code_invalid'
-    | 'menu_code' | 'code_enter_prompt' | 'code_redeemed' | 'code_redeemed_nobonus'
     | 'menu_review' | 'menu_gifts' | 'btn_confirm' | 'btn_cancel'
     | 'menu_profile' | 'profile_header' | 'profile_gift_reachable' | 'profile_gift_need'
     | 'profile_no_gifts' | 'profile_all_reachable'
@@ -74,11 +73,6 @@ const messages: Record<Lang, Record<Key, string>> = {
         gift_requested:
             '📩 So\'rovingiz qabul qilindi!\n🎁 "{title}" sovg\'asi uchun {price} bonus ushlab turildi.\n⏳ Admin tasdiqlagach sovg\'a beriladi (rad etilsa bonus qaytariladi).\n💰 Qolgan bonus: {bonus}',
         code_invalid: "❌ Kod yaroqsiz, allaqachon ishlatilgan yoki muddati o'tgan.",
-        menu_code: '🎫 Kod kiritish',
-        code_enter_prompt: "🎫 Mahsulotdagi kodni kiriting (masalan: AXZ78RT):",
-        code_redeemed:
-            "✅ Kod tasdiqlandi!\n🎁 \"{title}\" uchun +{points} bonus qo'shildi.\n💰 Joriy bonus: {bonus}",
-        code_redeemed_nobonus: '✅ Kod tasdiqlandi! Rahmat.',
         menu_review: '🧾 Xaridni tasdiqlash',
         menu_gifts: "🎁 Sovg'alar",
         menu_profile: '👤 Mening hisobim',
@@ -170,11 +164,6 @@ const messages: Record<Lang, Record<Key, string>> = {
         gift_requested:
             '📩 Ваш запрос принят!\n🎁 За подарок "{title}" зарезервировано {price} бонусов.\n⏳ Подарок будет выдан после подтверждения админом (при отказе бонусы вернутся).\n💰 Остаток бонусов: {bonus}',
         code_invalid: '❌ Код недействителен, уже использован или истёк срок.',
-        menu_code: '🎫 Ввести код',
-        code_enter_prompt: '🎫 Введите код с товара (например: AXZ78RT):',
-        code_redeemed:
-            '✅ Код подтверждён!\n🎁 За "{title}" начислено +{points} бонусов.\n💰 Текущий баланс: {bonus}',
-        code_redeemed_nobonus: '✅ Код подтверждён! Спасибо.',
         menu_review: '🧾 Подтвердить покупку',
         menu_gifts: '🎁 Подарки',
         menu_profile: '👤 Мой профиль',
@@ -266,11 +255,6 @@ const messages: Record<Lang, Record<Key, string>> = {
         gift_requested:
             '📩 Your request has been received!\n🎁 {price} bonus reserved for the gift "{title}".\n⏳ The gift will be issued after admin approval (bonus refunded if rejected).\n💰 Remaining bonus: {bonus}',
         code_invalid: '❌ Code is invalid, already used, or expired.',
-        menu_code: '🎫 Enter code',
-        code_enter_prompt: '🎫 Enter the code from the product (e.g. AXZ78RT):',
-        code_redeemed:
-            '✅ Code confirmed!\n🎁 +{points} bonus added for "{title}".\n💰 Current balance: {bonus}',
-        code_redeemed_nobonus: '✅ Code confirmed! Thank you.',
         menu_review: '🧾 Confirm purchase',
         menu_gifts: '🎁 Gifts',
         menu_profile: '👤 My profile',

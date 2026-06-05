@@ -54,9 +54,6 @@ export class Purchase {
     @Column({ type: 'varchar', default: '' })
     proofImage: string;
 
-    @Column({ type: 'text', default: '' })
-    reviewComment: string;
-
     @Column({ type: 'timestamp', nullable: true })
     reviewedAt: Date | null;
 
