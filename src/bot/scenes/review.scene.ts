@@ -168,11 +168,14 @@ export class ReviewScene {
         }
 
         (ctx.wizard.state as ReviewState).quantity = qty;
+        (ctx.wizard.state as ReviewState).productCodes = [];
+        (ctx.wizard.state as ReviewState).codeIds = [];
+        (ctx.wizard.state as ReviewState).codesBonus = 0;
 
-        // Kod(lar)ni so'raymiz
+        // 1-kodni so'raymiz
         const prompt = qty === 1
             ? t(lang, 'ask_codes')
-            : t(lang, 'ask_codes_multi', { qty });
+            : t(lang, 'ask_code_n', { n: 1, total: qty });
         await ctx.reply(prompt, cancelOnlyKeyboard(lang));
         ctx.wizard.next(); // → WizardStep(4)
     }
@@ -181,7 +184,7 @@ export class ReviewScene {
     async waitForCodes(@Ctx() ctx: WizardCtx) {
         const lang = this.lang(ctx);
         const message: any = (ctx as any).message;
-        const text = typeof message?.text === 'string' ? message.text.trim() : '';
+        const text = typeof message?.text === 'string' ? message.text.trim().toUpperCase() : '';
 
         if (isReviewCancel(text)) {
             await ctx.reply(t(lang, 'canceled'), mainMenuKeyboard(lang));
@@ -189,43 +192,66 @@ export class ReviewScene {
             return;
         }
 
-        const qty = (ctx.wizard.state as ReviewState).quantity ?? 1;
-        const entered = text.split('\n').map((l: string) => l.trim().toUpperCase()).filter(Boolean);
+        const state = ctx.wizard.state as ReviewState;
+        const qty = state.quantity ?? 1;
+        const collected = state.productCodes ?? [];
+        const collectedIds = state.codeIds ?? [];
+        const collectedBonus = state.codesBonus ?? 0;
 
-        if (entered.length !== qty || entered.some((c: string) => c.length !== 7)) {
-            const prompt = qty === 1 ? t(lang, 'ask_codes') : t(lang, 'ask_codes_multi', { qty });
+        // Format tekshir: aynan 7 belgi
+        if (text.length !== 7) {
+            const n = collected.length + 1;
+            const prompt = qty === 1
+                ? t(lang, 'ask_codes')
+                : t(lang, 'ask_code_n', { n, total: qty });
             await ctx.reply(`${t(lang, 'invalid_codes')}\n\n${prompt}`, cancelOnlyKeyboard(lang));
             return;
         }
 
-        // Har bir kodni DB dan tekshirish
-        const results = await this.codesService.validateMultiple(entered);
-        const invalid = results.filter((r) => !r.rec);
-
-        if (invalid.length > 0) {
-            const list = invalid.map((r) => `• ${r.code}`).join('\n');
+        // DB dan tekshirish
+        const rec = await this.codesService.validate(text);
+        if (!rec) {
+            const n = collected.length + 1;
+            const prompt = qty === 1
+                ? t(lang, 'ask_codes')
+                : t(lang, 'ask_code_n', { n, total: qty });
             await ctx.reply(
-                t(lang, 'code_not_found_list', { list }),
+                t(lang, 'code_not_found_list', { list: `• ${text}` }) + `\n\n${prompt}`,
                 cancelOnlyKeyboard(lang),
             );
             return;
         }
 
-        // Bonus preview ko'rsatish
-        const recs = results.map((r) => r.rec!);
-        const codeIds = recs.map((r) => r.id);
-        const codesBonus = recs.reduce((sum, r) => sum + (r.points ?? 0), 0);
+        // Kodni saqlaymiz
+        collected.push(text);
+        collectedIds.push(rec.id);
+        state.productCodes = collected;
+        state.codeIds = collectedIds;
+        state.codesBonus = collectedBonus + (rec.points ?? 0);
 
-        (ctx.wizard.state as ReviewState).productCodes = entered;
-        (ctx.wizard.state as ReviewState).codeIds = codeIds;
-        (ctx.wizard.state as ReviewState).codesBonus = codesBonus;
+        if (collected.length < qty) {
+            // Keyingi kodni so'raymiz
+            const n = collected.length + 1;
+            await ctx.reply(
+                t(lang, 'ask_code_n', { n, total: qty }),
+                cancelOnlyKeyboard(lang),
+            );
+            // Shu stepda qolamiz
+            return;
+        }
 
-        const previewLines = recs
-            .map((r, i) => `${i + 1}. ${entered[i]} — <b>+${r.points} ball</b>`)
+        // Hammasi to'plandi — to'g'ri ballar uchun DB dan qayta tekshir
+        const allRecs = await this.codesService.validateMultiple(collected);
+        const validRecs = allRecs.map((r) => r.rec!);
+        const totalBonus = validRecs.reduce((s, r) => s + (r?.points ?? 0), 0);
+        state.codesBonus = totalBonus;
+
+        const lines = collected
+            .map((code, i) => `${i + 1}. ${code} — <b>+${validRecs[i]?.points ?? 0} ball</b>`)
             .join('\n');
 
         await ctx.reply(
-            t(lang, 'codes_preview', { lines: previewLines, total: codesBonus }),
+            t(lang, 'codes_preview', { lines, total: totalBonus }),
             { parse_mode: 'HTML', ...cancelOnlyKeyboard(lang) },
         );
         await ctx.reply(t(lang, 'send_proof'), cancelOnlyKeyboard(lang));

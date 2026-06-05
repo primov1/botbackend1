@@ -39,7 +39,8 @@ type Key =
     | 'review_accepted' | 'channel_note'
     | 'ask_quantity' | 'invalid_quantity'
     | 'ask_codes' | 'ask_codes_multi' | 'invalid_codes'
-    | 'codes_preview' | 'code_not_found_list';
+    | 'codes_preview' | 'code_not_found_list'
+    | 'ask_code_n';
 
 const messages: Record<Lang, Record<Key, string>> = {
     // ============================ O'ZBEK ============================
@@ -123,6 +124,7 @@ const messages: Record<Lang, Record<Key, string>> = {
         ask_quantity: "🔢 Nechta dona sotib oldingiz? Sonni yozing (masalan: 1, 2, 3):",
         invalid_quantity: "❌ Noto'g'ri son. 1 dan 100 gacha butun son yozing:",
         ask_codes: "🏷 Mahsulot stikeridan 7 ta belgili kodni kiriting:",
+        ask_code_n: "🏷 {n}-mahsulot kodini kiriting ({n}/{total}):",
         ask_codes_multi: "🏷 Har bir mahsulot uchun 7 ta belgili kodni kiriting — har birini yangi qatordan ({qty} ta kod):",
         invalid_codes: "❌ Kodlar noto'g'ri. Har biri aynan 7 ta belgi bo'lishi kerak. Qayta kiriting:",
         codes_preview: "✅ Kodlar topildi!\n\n{lines}\n\n💰 Jami bonus: <b>+{total} ball</b>\n<i>(Admin chekni tasdiqlangach hisobingizga tushadi)</i>",
@@ -219,6 +221,7 @@ const messages: Record<Lang, Record<Key, string>> = {
         ask_quantity: '🔢 Сколько штук вы купили? Введите число (например: 1, 2, 3):',
         invalid_quantity: '❌ Неверное число. Введите целое число от 1 до 100:',
         ask_codes: '🏷 Введите 7-значный код с наклейки товара:',
+        ask_code_n: '🏷 Код {n}-го товара ({n}/{total}):',
         ask_codes_multi: '🏷 Введите 7-значный код для каждого товара — каждый с новой строки ({qty} кода):',
         invalid_codes: '❌ Коды неверны. Каждый должен быть ровно 7 символов. Попробуйте снова:',
         codes_preview: '✅ Коды найдены!\n\n{lines}\n\n💰 Итого бонус: <b>+{total} баллов</b>\n<i>(Зачислится после подтверждения чека админом)</i>',
@@ -314,6 +317,7 @@ const messages: Record<Lang, Record<Key, string>> = {
         ask_quantity: '🔢 How many units did you buy? Enter a number (e.g. 1, 2, 3):',
         invalid_quantity: '❌ Invalid number. Enter a whole number from 1 to 100:',
         ask_codes: '🏷 Enter the 7-character code from the product sticker:',
+        ask_code_n: '🏷 Code for product {n} ({n}/{total}):',
         ask_codes_multi: '🏷 Enter the 7-character code for each product — one per line ({qty} codes):',
         invalid_codes: '❌ Invalid codes. Each must be exactly 7 characters. Please try again:',
         codes_preview: '✅ Codes found!\n\n{lines}\n\n💰 Total bonus: <b>+{total} points</b>\n<i>(Will be credited after admin approves the receipt)</i>',
