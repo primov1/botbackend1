@@ -215,7 +215,6 @@ export class ReviewScene {
         const qty = state.quantity ?? 1;
         const collected = state.productCodes ?? [];
         const collectedIds = state.codeIds ?? [];
-        const collectedPoints = state.codePoints ?? [];
 
         // Shu slot uchun qayta so'rash matni (kod hali qabul qilinmadi)
         const nextPrompt = () => {
@@ -255,33 +254,29 @@ export class ReviewScene {
             return;
         }
 
-        // Kodni saqlaymiz (allaqachon ishlatilgan deb belgilandi)
-        const rec = result.rec;
+        // Kodni saqlaymiz
         collected.push(text);
-        collectedIds.push(rec.id);
-        collectedPoints.push(rec.points ?? 0);
+        collectedIds.push(result.rec.id);
         state.productCodes = collected;
         state.codeIds = collectedIds;
-        state.codePoints = collectedPoints;
-        state.codesBonus = collectedPoints.reduce((s, p) => s + p, 0);
 
         if (collected.length < qty) {
-            // Keyingi kodni so'raymiz
             const n = collected.length + 1;
             await ctx.reply(
                 t(lang, 'ask_code_n', { n, total: qty }),
                 cancelOnlyKeyboard(lang),
             );
-            // Shu stepda qolamiz
             return;
         }
 
-        // Hammasi to'plandi — kodlar allaqachon belgilangan, saqlangan ballardan foydalanamiz
-        const totalBonus = collectedPoints.reduce((s, p) => s + p, 0);
+        // Hammasi to'plandi — bonus mahsulotdan (kodlar faqat xarid isboti)
+        const product = await this.catalogService.findProductById(state.productId!);
+        const productBonus = product?.bonus ?? 0;
+        const totalBonus = productBonus * qty;
         state.codesBonus = totalBonus;
 
         const lines = collected
-            .map((code, i) => `${i + 1}. ${code} — <b>+${collectedPoints[i] ?? 0} ball</b>`)
+            .map((code, i) => `${i + 1}. ${code} — <b>+${productBonus} ball</b>`)
             .join('\n');
 
         await ctx.reply(
