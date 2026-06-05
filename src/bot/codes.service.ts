@@ -41,6 +41,21 @@ export class CodesService {
         );
     }
 
+    /** Kodni FAQAT tekshiradi, belgilamaydi. Bekor qilinsa kod saqlanib qoladi. */
+    async check(code: string): Promise<ConsumeResult> {
+        const c = (code ?? '').trim().toUpperCase();
+        if (!c) return { status: 'not_found' };
+        try {
+            const found = await this.codeRepo.findOne({ where: { code: c } });
+            if (!found) return { status: 'not_found' };
+            if (found.isUsed) return { status: 'used' };
+            if (new Date(found.expiresAt).getTime() < Date.now()) return { status: 'expired' };
+            return { status: 'ok', rec: found };
+        } catch {
+            return { status: 'not_found' };
+        }
+    }
+
     /**
      * Kodni ATOMIK tarzda ishlatilgan deb belgilaydi va holatini qaytaradi.
      * Bir marta ishlatilgach qayta ishlatib bo'lmaydi: keyingi safar { status: 'used' }.

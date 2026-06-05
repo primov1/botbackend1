@@ -57,7 +57,7 @@ export class ReviewScene {
         (ctx.wizard.state as ReviewState).lang = lang;
         (ctx.wizard.state as ReviewState).userId = user?.id;
 
-        // KOD REJIMI (QR-2): kodni tekshirib, DARHOL ishlatilgan deb belgilaymiz
+        // KOD REJIMI (QR-2): kodni faqat tekshiramiz, belgilash rasm yuborilganda bo'ladi
         const fromCode = !!enterState.fromCode;
         if (fromCode && enterState.code) {
             if (!user) {
@@ -65,7 +65,7 @@ export class ReviewScene {
                 await ctx.scene.leave();
                 return;
             }
-            const result = await this.codesService.consume(enterState.code, user.id);
+            const result = await this.codesService.check(enterState.code);
             if (result.status === 'used') {
                 await ctx.reply(t(lang, 'code_already_used'), mainMenuKeyboard(lang));
                 await ctx.scene.leave();
@@ -237,18 +237,8 @@ export class ReviewScene {
             return;
         }
 
-        // Foydalanuvchini aniqlaymiz (kodni ishlatilgan deb belgilash uchun kerak)
-        const userId =
-            state.userId ?? (await this.botService.findByTelegramId(ctx.from?.id ?? 0))?.id;
-        if (!userId) {
-            await ctx.reply(t(lang, 'register_first'), mainMenuKeyboard(lang));
-            await ctx.scene.leave();
-            return;
-        }
-        state.userId = userId;
-
-        // DB dan tekshirib, DARHOL ishlatilgan deb belgilaymiz (bir martalik)
-        const result = await this.codesService.consume(text, userId);
+        // DB dan faqat tekshiramiz — belgilash rasm yuborilganda bo'ladi
+        const result = await this.codesService.check(text);
         if (result.status === 'used') {
             await ctx.reply(`${t(lang, 'code_already_used')}\n\n${nextPrompt()}`, cancelOnlyKeyboard(lang));
             return;
@@ -369,7 +359,12 @@ export class ReviewScene {
         const codeIds = (ctx.wizard.state as ReviewState).codeIds ?? [];
         const codeId = (ctx.wizard.state as ReviewState).codeId;
 
-        const hasCode = productCodes.length > 0 || !!codeId;
+        // Barcha kod IDlarini to'playmiz (qo'lda kiritilgan + QR/deep-link)
+        const allCodeIds = Array.from(new Set<number>([
+            ...codeIds,
+            ...(codeId ? [codeId] : []),
+        ]));
+        const hasCode = allCodeIds.length > 0;
 
         // Bonus: kodlar ballidan (agar bor bo'lsa), aks holda mahsulot ballidan
         const totalBonus = codesBonus !== undefined ? codesBonus : product.bonus * quantity;
@@ -383,6 +378,16 @@ export class ReviewScene {
                 : '';
 
         if (hasCode) {
+            // Kodlarni atomik belgilaymiz — faqat hammasi o'tsa xarid yaratiladi
+            const markResults = await Promise.all(
+                allCodeIds.map(id => this.codesService.markUsed(id, user.id)),
+            );
+            if (markResults.some(ok => !ok)) {
+                await ctx.reply(t(lang, 'code_already_used'), mainMenuKeyboard(lang));
+                await ctx.scene.leave();
+                return;
+            }
+
             // Kodli xarid — darhol tasdiqlash, bonusni hoziroq qo'shish
             const updatedUser = await this.botService.createApprovedPurchase({
                 userId: user.id,
