@@ -388,8 +388,8 @@ export class ReviewScene {
                 return;
             }
 
-            // Kodli xarid — darhol tasdiqlash, bonusni hoziroq qo'shish
-            const updatedUser = await this.botService.createApprovedPurchase({
+            // Kodli xarid — pending, admin tasdiqlagach bonus tushadi
+            await this.botService.createReviewPurchase({
                 userId: user.id,
                 productId: product.id,
                 quantity,
@@ -398,11 +398,7 @@ export class ReviewScene {
                 reviewNote,
             });
             await ctx.reply(
-                t(lang, 'review_accepted_code', {
-                    bonus: totalBonus,
-                    newBonus: updatedUser.bonus,
-                    channelNote,
-                }),
+                t(lang, 'review_accepted', { bonus: totalBonus, channelNote }),
                 mainMenuKeyboard(lang),
             );
         } else {
