@@ -367,7 +367,7 @@ export class ReviewScene {
         const hasCode = allCodeIds.length > 0;
 
         // Bonus: kodlar ballidan (agar bor bo'lsa), aks holda mahsulot ballidan
-        const totalBonus = codesBonus !== undefined ? codesBonus : product.bonus * quantity;
+        const totalBonus = hasCode ? (codesBonus ?? 0) : product.bonus * quantity;
         const reviewNote = productCodes.length
             ? `Kodlar: ${productCodes.join(', ')} [ids:${codeIds.join(',')}]`
             : codeId ? `codeId:${codeId}` : '';
