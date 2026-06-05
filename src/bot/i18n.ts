@@ -35,7 +35,7 @@ type Key =
     | 'product_info' | 'channel_warning' | 'product_info_plain'
     | 'press_confirm' | 'canceled' | 'please_press_button'
     | 'send_proof' | 'please_send_photo' | 'already_pending'
-    | 'review_accepted' | 'channel_note'
+    | 'review_accepted' | 'review_accepted_code' | 'channel_note'
     | 'ask_quantity' | 'invalid_quantity'
     | 'ask_codes' | 'ask_codes_multi' | 'invalid_codes'
     | 'codes_preview' | 'code_not_found_list' | 'code_duplicate'
@@ -137,6 +137,8 @@ const messages: Record<Lang, Record<Key, string>> = {
             '⏳ Bu mahsulot uchun tekshiruv allaqachon yuborilgan. Admin tasdiqlashini kuting.',
         review_accepted:
             "✅ Tekshirish uchun qabul qilindi!\n⏳ Tasdiqlangach hisobingizga qo'shiladi.\n🎁 Xarid uchun bonus: +{bonus}{channelNote}",
+        review_accepted_code:
+            "✅ Xarid tasdiqlandi!\n💰 +{bonus} ball hisobingizga qo'shildi.\n💰 Jami bonus: {newBonus}{channelNote}",
         channel_note:
             "\n⚠️ Eslatma: Kanalga obuna bo'lmagan bo'lsangiz bonus tasdiqlanmasligi mumkin.",
     },
@@ -234,6 +236,8 @@ const messages: Record<Lang, Record<Key, string>> = {
         already_pending: '⏳ Заявка по этому товару уже отправлена. Ожидайте подтверждения админа.',
         review_accepted:
             '✅ Принято на проверку!\n⏳ После подтверждения бонус начислится на ваш счёт.\n🎁 Бонус за покупку: +{bonus}{channelNote}',
+        review_accepted_code:
+            '✅ Покупка подтверждена!\n💰 +{bonus} баллов зачислено на ваш счёт.\n💰 Итого бонус: {newBonus}{channelNote}',
         channel_note:
             '\n⚠️ Примечание: если вы не подписаны на канал, бонус может быть не подтверждён.',
     },
@@ -331,6 +335,8 @@ const messages: Record<Lang, Record<Key, string>> = {
         already_pending: '⏳ A review for this product has already been submitted. Wait for admin approval.',
         review_accepted:
             '✅ Accepted for review!\n⏳ Once approved, it will be added to your balance.\n🎁 Bonus for purchase: +{bonus}{channelNote}',
+        review_accepted_code:
+            '✅ Purchase confirmed!\n💰 +{bonus} points added to your balance.\n💰 Total bonus: {newBonus}{channelNote}',
         channel_note: '\n⚠️ Note: if you are not subscribed to the channel, the bonus may not be approved.',
     },
 };

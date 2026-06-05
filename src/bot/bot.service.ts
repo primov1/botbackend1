@@ -172,6 +172,27 @@ export class BotService {
         return this.purchaseRepo.save(purchase);
     }
 
+    /** Kodli xarid: tasdiqlangan holda yaratadi va bonusni darhol qo'shadi (bitta transaction). */
+    async createApprovedPurchase(payload: CreateReviewPurchasePayload): Promise<User> {
+        return this.dataSource.transaction(async (em) => {
+            await em.insert(Purchase, {
+                userId: payload.userId,
+                productId: payload.productId,
+                quantity: payload.quantity,
+                bonus: payload.bonus,
+                status: 'approved',
+                reviewSubmitted: true,
+                proofImage: payload.proofImage,
+                reviewNote: payload.reviewNote ?? '',
+                reviewedAt: new Date(),
+            });
+            if (payload.bonus > 0) {
+                await em.increment(User, { id: payload.userId }, 'bonus', payload.bonus);
+            }
+            return em.findOne(User, { where: { id: payload.userId } }) as Promise<User>;
+        });
+    }
+
     async findUserOrdersPage(userId: number, page: number, size = 5) {
         const filter = { userId, status: 'approved' as const };
         const total = await this.purchaseRepo.count({ where: filter });

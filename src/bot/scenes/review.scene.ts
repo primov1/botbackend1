@@ -367,34 +367,55 @@ export class ReviewScene {
         const codesBonus = (ctx.wizard.state as ReviewState).codesBonus;
         const productCodes = (ctx.wizard.state as ReviewState).productCodes ?? [];
         const codeIds = (ctx.wizard.state as ReviewState).codeIds ?? [];
+        const codeId = (ctx.wizard.state as ReviewState).codeId;
+
+        const hasCode = productCodes.length > 0 || !!codeId;
 
         // Bonus: kodlar ballidan (agar bor bo'lsa), aks holda mahsulot ballidan
         const totalBonus = codesBonus !== undefined ? codesBonus : product.bonus * quantity;
         const reviewNote = productCodes.length
             ? `Kodlar: ${productCodes.join(', ')} [ids:${codeIds.join(',')}]`
-            : '';
-
-        await this.botService.createReviewPurchase({
-            userId: user.id,
-            productId: product.id,
-            quantity,
-            bonus: totalBonus,
-            proofImage,
-            reviewNote,
-        });
-
-        // Eslatma: kodlar kiritilgan paytda DARHOL ishlatilgan deb belgilangan
-        // (CodesService.consume), shuning uchun bu yerda qaytadan belgilash shart emas.
+            : codeId ? `codeId:${codeId}` : '';
 
         const channelNote =
             product.requireChannel && (product.telegramChannel || product.instagram)
                 ? t(lang, 'channel_note')
                 : '';
 
-        await ctx.reply(
-            t(lang, 'review_accepted', { bonus: totalBonus, channelNote }),
-            mainMenuKeyboard(lang),
-        );
+        if (hasCode) {
+            // Kodli xarid — darhol tasdiqlash, bonusni hoziroq qo'shish
+            const updatedUser = await this.botService.createApprovedPurchase({
+                userId: user.id,
+                productId: product.id,
+                quantity,
+                bonus: totalBonus,
+                proofImage,
+                reviewNote,
+            });
+            await ctx.reply(
+                t(lang, 'review_accepted_code', {
+                    bonus: totalBonus,
+                    newBonus: updatedUser.bonus,
+                    channelNote,
+                }),
+                mainMenuKeyboard(lang),
+            );
+        } else {
+            // Kodsiz xarid — admin tasdiqlashini kutadi
+            await this.botService.createReviewPurchase({
+                userId: user.id,
+                productId: product.id,
+                quantity,
+                bonus: totalBonus,
+                proofImage,
+                reviewNote,
+            });
+            await ctx.reply(
+                t(lang, 'review_accepted', { bonus: totalBonus, channelNote }),
+                mainMenuKeyboard(lang),
+            );
+        }
+
         await ctx.scene.leave();
     }
 }
